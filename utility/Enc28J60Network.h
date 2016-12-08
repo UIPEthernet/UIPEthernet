@@ -138,8 +138,6 @@ private:
   static uint8_t readRegByte (uint8_t address);
   static void writeRegByte (uint8_t address, uint8_t data);
 
-  static void waitxmswithwdtreset(uint16_t xms);
-
   friend void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
 
 public:
