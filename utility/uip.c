@@ -375,6 +375,7 @@ uip_udpchksum(void)
 #endif /* UIP_UDP_CHECKSUMS */
 #endif /* UIP_ARCH_CHKSUM */
 /*---------------------------------------------------------------------------*/
+//"struct uip_conn {" in uip.h
 void
 uip_init(void)
 {

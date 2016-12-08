@@ -64,6 +64,9 @@ MemoryPool::allocBlock(memaddress size)
         }
       block = &blocks[next];
       cur = next;
+      #if defined(ESP8266)
+//        yield();
+      #endif
     }
   while (true);
 
@@ -141,6 +144,9 @@ MemoryPool::freeBlock(memhandle handle)
       if (next == NOBLOCK)
         return;
       b = &blocks[next];
+      #if defined(ESP8266)
+//        yield();
+      #endif
     }
   while (true);
 }

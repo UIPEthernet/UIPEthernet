@@ -39,18 +39,10 @@ extern "C" {
   #else
   // generic, non-platform specific code
   #endif
+#include "logging.h"
 #include "enc28j60.h"
 #include "uip.h"
 }
-
-//ENC28J60DEBUGDEFINE for search
-//#define ENC28J60DEBUG
-#ifdef ENC28J60DEBUG
-   #include "HardwareSerial.h"
-   #if defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-      #define Serial Serial1
-   #endif
-#endif
 
 // set CS to 0 = active
 #define CSACTIVE digitalWrite(ENC28J60_CONTROL_CS, LOW)
@@ -65,10 +57,9 @@ extern "C" {
 #endif
 #endif
 
-
-
 uint16_t Enc28J60Network::nextPacketPtr;
 uint8_t Enc28J60Network::bank=0xff;
+uint8_t Enc28J60Network::erevid=0;
 
 struct memblock Enc28J60Network::receivePkt;
 
@@ -77,7 +68,13 @@ bool Enc28J60Network::broadcast_enabled = false;
 
 void Enc28J60Network::init(uint8_t* macaddr)
 {
-  unsigned int timeout = 10000;
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::init(uint8_t* macaddr) DEBUG_V3:Function started"));
+  #endif
+  receivePkt.begin = 0;
+  receivePkt.size = 0;
+
+  unsigned int timeout = 15;
   MemoryPool::init(); // 1 byte in between RX_STOP_INIT and pool to allow prepending of controlbyte
   // initialize I/O
   // ss as output:
@@ -85,46 +82,48 @@ void Enc28J60Network::init(uint8_t* macaddr)
   CSPASSIVE; // ss=0
   //
 
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / before initSPI()"));
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG
+    LogObject.print(F("ENC28J60::init DEBUG:csPin = "));
+    LogObject.println(ENC28J60_CONTROL_CS);
+    LogObject.print(F("ENC28J60::init DEBUG:miso = "));
+    LogObject.println(SPI_MISO);
+    LogObject.print(F("ENC28J60::init DEBUG:mosi = "));
+    LogObject.println(SPI_MOSI);
+    LogObject.print(F("ENC28J60::init DEBUG:sck = "));
+    LogObject.println(SPI_SCK);
+  #endif
 #if ENC28J60_USE_SPILIB
+  #if ACTLOGLEVEL>=LOG_DEBUG
+    LogObject.println(F("ENC28J60::init DEBUG:Use SPI lib SPI.begin()"));
+  #endif
   SPI.begin();
-#if defined(ARDUINO_ARCH_AVR)
-  // AVR-specific code
-  SPI.setClockDivider(SPI_CLOCK_DIV2); //results in 8MHZ at 16MHZ system clock.
-#elif defined(ARDUINO_ARCH_SAM)
-  // SAM-specific code
-  SPI.setClockDivider(10); //defaults to 21 which results in aprox. 4MHZ. A 10 should result in a little more than 8MHZ.
-#elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-  // generic, non-platform specific code
-  #define USE_STM32F1_DMAC 1 //on STM32
-  // BOARD_NR_SPI >= 1   BOARD_SPI1_NSS_PIN,     BOARD_SPI1_SCK_PIN,     BOARD_SPI1_MISO_PIN,     BOARD_SPI1_MOSI_PIN
+  #if defined(ARDUINO_ARCH_AVR)
+    // AVR-specific code
+    SPI.setClockDivider(SPI_CLOCK_DIV2); //results in 8MHZ at 16MHZ system clock.
+  #elif defined(ARDUINO_ARCH_SAM)
+    // SAM-specific code
+    SPI.setClockDivider(10); //defaults to 21 which results in aprox. 4MHZ. A 10 should result in a little more than 8MHZ.
+  #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+    // generic, non-platform specific code
+    #define USE_STM32F1_DMAC 1 //on STM32
+    // BOARD_NR_SPI >= 1   BOARD_SPI1_NSS_PIN,     BOARD_SPI1_SCK_PIN,     BOARD_SPI1_MISO_PIN,     BOARD_SPI1_MOSI_PIN
     SPI.setBitOrder(MSBFIRST);
     SPI.setDataMode(SPI_MODE0);
     SPI.setClockDivider(SPI_CLOCK_DIV8); //value 8 the result is 9MHz at 72MHz clock.
-  #ifdef ENC28J60DEBUG
-    Serial.println(F("ENC28J60::initialize / after initSPI()"));
-    Serial.print(F("ENC28J60::initialize / csPin = "));
-    Serial.println(SPI.nssPin());
-    Serial.print(F("ENC28J60::initialize / miso = "));
-    Serial.println(SPI.misoPin());
-    Serial.print(F("ENC28J60::initialize / mosi = "));
-    Serial.println(SPI.mosiPin());
-    Serial.print(F("ENC28J60::initialize / sck = "));
-    Serial.println(SPI.sckPin());
-  #endif
-#else
+  #else
     SPI.setBitOrder(MSBFIRST);
   //  SPI.setDataMode(SPI_MODE0);
   //  SPI.setClockDivider(SPI_CLOCK_DIV16);
 #endif
 #else
+  #if ACTLOGLEVEL>=LOG_DEBUG
+    LogObject.println(F("ENC28J60::init DEBUG:Use Native hardware SPI"));
+  #endif
   pinMode(SPI_MOSI, OUTPUT);
   pinMode(SPI_SCK, OUTPUT);
   pinMode(SPI_MISO, INPUT);
   //Hardware SS must be configured as OUTPUT to enable SPI-master (regardless of which pin is configured as ENC28J60_CONTROL_CS)
-  pinMode(SPI_SS, OUTPUT);
+  //pinMode(ENC28J60_CONTROL_CS, OUTPUT);
 
   digitalWrite(SPI_MOSI, LOW);
   digitalWrite(SPI_SCK, LOW);
@@ -146,29 +145,29 @@ void Enc28J60Network::init(uint8_t* macaddr)
   // initialize receive buffer
   // 16-bit transfers, must write low byte first
   // set receive buffer start address
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / before readOp(ENC28J60_READ_CTRL_REG, ESTAT)"));
-#endif
-  while (!readOp(ENC28J60_READ_CTRL_REG, ESTAT) & ESTAT_CLKRDY)
-    {
-    delayMicroseconds(15);
-    if (--timeout == 0)
-      {
-      #ifdef ENC28J60DEBUG
-         Serial.println(F("ENC28J60::initialize TIMEOUT !!!"));
-      #endif
-      return;
-      }
-    }
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / after readOp(ENC28J60_READ_CTRL_REG, ESTAT)"));
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:Before readOp(ENC28J60_READ_CTRL_REG, ESTAT)"));
+  #endif
   nextPacketPtr = RXSTART_INIT;
+  while ((!readOp(ENC28J60_READ_CTRL_REG, ESTAT) & ESTAT_CLKRDY) && (timeout>0))
+    {
+    timeout=timeout-1;
+    delay(10);
+    #if defined(ESP8266)
+       wdt_reset();
+    #endif
+    }
+  #if ACTLOGLEVEL>=LOG_ERR
+    if (timeout==0) {LogObject.println(F("ENC28J60::init ERROR:TIMEOUT !!!"));}
+  #endif
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:After readOp(ENC28J60_READ_CTRL_REG, ESTAT)"));
+  #endif
   // Rx start
   writeRegPair(ERXSTL, RXSTART_INIT);
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / after writeRegPair(ERXSTL, RXSTART_INIT)"));
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:After writeRegPair(ERXSTL, RXSTART_INIT)"));
+  #endif
   // set receive pointer address
   writeRegPair(ERXRDPTL, RXSTART_INIT);
   // RX end
@@ -190,9 +189,9 @@ void Enc28J60Network::init(uint8_t* macaddr)
   //TODO define specific pattern to receive dhcp-broadcast packages instead of setting ERFCON_BCEN!
 //    enableBroadcast(); // change to add ERXFCON_BCEN recommended by epam
   writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN);
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / after writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN)"));
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:After writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN)"));
+  #endif
   writeRegPair(EPMM0, 0x303f);
   writeRegPair(EPMCSL, 0xf7f9);
   //
@@ -203,9 +202,9 @@ void Enc28J60Network::init(uint8_t* macaddr)
   writeRegPair(MACON1, MACON1_MARXEN|MACON1_TXPAUS|MACON1_RXPAUS);
   // enable automatic padding to 60bytes and CRC operations
   writeOp(ENC28J60_BIT_FIELD_SET, MACON3, MACON3_PADCFG0|MACON3_TXCRCEN|MACON3_FRMLNEN);
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / after writeOp(ENC28J60_BIT_FIELD_SET, MACON3, MACON3_PADCFG0|MACON3_TXCRCEN|MACON3_FRMLNEN)"));
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:After writeOp(ENC28J60_BIT_FIELD_SET, MACON3, MACON3_PADCFG0|MACON3_TXCRCEN|MACON3_FRMLNEN)"));
+  #endif
   // set inter-frame gap (non-back-to-back)
   writeRegPair(MAIPGL, 0x0C12);
   // set inter-frame gap (back-to-back)
@@ -223,18 +222,18 @@ void Enc28J60Network::init(uint8_t* macaddr)
   writeReg(MAADR1, macaddr[4]);
   writeReg(MAADR0, macaddr[5]);
   // no loopback of transmitted frames
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / before phyWrite(PHCON2, PHCON2_HDLDIS)"));
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:Before phyWrite(PHCON2, PHCON2_HDLDIS)"));
+  #endif
   phyWrite(PHCON2, PHCON2_HDLDIS);
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / after phyWrite(PHCON2, PHCON2_HDLDIS)"));
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:After phyWrite(PHCON2, PHCON2_HDLDIS)"));
+  #endif
   // switch to bank 0
   setBank(ECON1);
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / after setBank(ECON1)"));
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:After setBank(ECON1)"));
+  #endif
   // enable interrutps
   writeOp(ENC28J60_BIT_FIELD_SET, EIE, EIE_INTIE|EIE_PKTIE);
   // enable packet reception
@@ -242,31 +241,47 @@ void Enc28J60Network::init(uint8_t* macaddr)
   //Configure leds
   phyWrite(PHLCON,0x476);
 
-#ifdef ENC28J60DEBUG
-  Serial.println(F("ENC28J60::initialize / before readReg(EREVID);"));
-#endif
-  byte rev = readReg(EREVID);
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("ENC28J60::init DEBUG_V3:Before readReg(EREVID);"));
+  #endif
+  erevid=readReg(EREVID);
+  if (erevid==0xFF) {erevid=0;}
   // microchip forgot to step the number on the silcon when they
   // released the revision B7. 6 is now rev B7. We still have
   // to see what they do when they release B8. At the moment
   // there is no B8 out yet
-  if (rev > 5) ++rev;
-#ifdef ENC28J60DEBUG
-  Serial.print(F("ENC28J60::initialize returns "));
-  Serial.println(rev);
-#endif
-//  return rev;
+  //if (erevid > 5) ++erevid;
+  #if ACTLOGLEVEL>=LOG_INFO
+    LogObject.print(F("ENC28J60::init INFO: Chip erevid="));
+    LogObject.print(erevid);
+    LogObject.println(F(" initialization completed."));
+  #endif
+
+//  return Enc28J60Network::erevid;
 }
 
 memhandle
 Enc28J60Network::receivePacket()
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::receivePacket() DEBUG_V3:Function started"));
+  #endif
+  #if defined(ESP8266)
+     wdt_reset();
+  #endif
   uint8_t rxstat;
   uint16_t len;
   // check if a packet has been received and buffered
   //if( !(readReg(EIR) & EIR_PKTIF) ){
   // The above does not work. See Rev. B4 Silicon Errata point 6.
-  if (readReg(EPKTCNT) != 0)
+  #if ACTLOGLEVEL>=LOG_ERR
+    if (erevid==0)
+      {
+        LogObject.println(F("Enc28J60Network::receivePacket() ERROR:ENC28j50 Device not found !!! Bypass receivePacket function !!!"));
+      }
+  #endif
+  uint8_t epktcnt=readReg(EPKTCNT);
+  if ((erevid!=0) && (epktcnt!=0) && (epktcnt==readReg(EPKTCNT)))
     {
       uint16_t readPtr = nextPacketPtr+6 > RXSTOP_INIT ? nextPacketPtr+6-RXSTOP_INIT+RXSTART_INIT : nextPacketPtr+6;
       // Set the read pointer to the start of the received packet
@@ -281,65 +296,83 @@ Enc28J60Network::receivePacket()
       // read the receive status (see datasheet page 43)
       rxstat = readOp(ENC28J60_READ_BUF_MEM, 0);
       //rxstat |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
-#ifdef ENC28J60DEBUG
-      Serial.print(F("receivePacket ["));
-      Serial.print(readPtr,HEX);
-      Serial.print(F("-"));
-      Serial.print((readPtr+len) % (RXSTOP_INIT+1),HEX);
-      Serial.print(F("], next: "));
-      Serial.print(nextPacketPtr,HEX);
-      Serial.print(F(", stat: "));
-      Serial.print(rxstat,HEX);
-      Serial.print(F(", count: "));
-      Serial.print(readReg(EPKTCNT));
-      Serial.print(F(" -> "));
-      Serial.println((rxstat & 0x80)!=0 ? "OK" : "failed");
-#endif
-      if ((len>TXSTOP_INIT) || (nextPacketPtr==0xFFFF))
-         {
-         #ifdef ENC28J60DEBUG
-            Serial.println(F("Received packet size too long or nextPacketPtr too big. Maybe SPI bus error!"));
-         #endif
-         rxstat=0;
-         nextPacketPtr = RXSTART_INIT;
-         }
+      #if ACTLOGLEVEL>=LOG_DEBUG
+        LogObject.print(F("Enc28J60Network::receivePacket() DEBUG:receivePacket ["));
+        LogObject.print(readPtr,HEX);
+        LogObject.print(F("-"));
+        LogObject.print((readPtr+len) % (RXSTOP_INIT+1),HEX);
+        LogObject.print(F("], next: "));
+        LogObject.print(nextPacketPtr,HEX);
+        LogObject.print(F(", stat: "));
+        LogObject.print(rxstat,HEX);
+        LogObject.print(F(", Packet count: "));
+        LogObject.print(epktcnt);
+        LogObject.print(F(" -> "));
+        LogObject.println((rxstat & 0x80)!=0 ? "OK" : "failed");
+      #endif
       // decrement the packet counter indicate we are done with this packet
       writeOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_PKTDEC);
       // check CRC and symbol errors (see datasheet page 44, table 7-3):
       // The ERXFCON.CRCEN is set by default. Normally we should not
       // need to check this.
-      if ((rxstat & 0x80) != 0)
+      if (((rxstat & 0x80) != 0) && (nextPacketPtr<=RXSTOP_INIT))
         {
           receivePkt.begin = readPtr;
           receivePkt.size = len;
-#ifdef ENC28J60DEBUG
-          Serial.print(F("receivePkt.size="));
-          Serial.println(len);
-#endif
+          #if ACTLOGLEVEL>=LOG_DEBUG
+            LogObject.print(F("Enc28J60Network::receivePacket() DEBUG: rxstat OK. receivePkt.size="));
+            LogObject.println(len);
+          #endif
           return UIP_RECEIVEBUFFERHANDLE;
         }
       // Move the RX read pointer to the start of the next received packet
       // This frees the memory we just read out
       setERXRDPT();
     }
+  else if (epktcnt!=readReg(EPKTCNT))
+    {
+    #if ACTLOGLEVEL>=LOG_ERR
+      LogObject.println(F("Enc28J60Network::receivePacket() ERROR:Packet count readed differ values. SPI bus ERROR!!!"));
+    #endif
+    }
+
   return (NOBLOCK);
 }
 
 void
 Enc28J60Network::setERXRDPT()
 {
-  writeRegPair(ERXRDPTL, nextPacketPtr == RXSTART_INIT ? RXSTOP_INIT : nextPacketPtr-1);
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::setERXRDPT() DEBUG_V3:Function started"));
+  #endif
+  nextPacketPtr == RXSTART_INIT ? RXSTOP_INIT : nextPacketPtr-1;
+  if (nextPacketPtr>RXSTOP_INIT) {nextPacketPtr=RXSTART_INIT;}
+  if ((nextPacketPtr&1)!=0) {nextPacketPtr--;}
+  #if ACTLOGLEVEL>=LOG_LOG_DEBUG
+    LogObject.print(F("Enc28J60Network::setERXRDPT() DEBUG:Set nextPacketPtr:"));
+    LogObject.println(nextPacketPtr,HEX);
+  #endif
+  writeRegPair(ERXRDPTL, nextPacketPtr);
 }
 
 memaddress
 Enc28J60Network::blockSize(memhandle handle)
 {
-  return handle == NOBLOCK ? 0 : handle == UIP_RECEIVEBUFFERHANDLE ? receivePkt.size : blocks[handle].size;
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::blockSize(memhandle handle) DEBUG_V3:Function started"));
+  #endif
+  return ((handle == NOBLOCK) || (erevid==0)) ? 0 : handle == UIP_RECEIVEBUFFERHANDLE ? receivePkt.size : blocks[handle].size;
 }
 
 void
 Enc28J60Network::sendPacket(memhandle handle)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::sendPacket(memhandle handle) INFO:Function started"));
+  #endif
+  #if defined(ESP8266)
+     wdt_reset();
+  #endif
   memblock *packet = &blocks[handle];
   uint16_t start = packet->begin-1;
   uint16_t end = start + packet->size;
@@ -350,21 +383,21 @@ Enc28J60Network::sendPacket(memhandle handle)
   if (data)
     writeByte(start, 0);
 
-#ifdef ENC28J60DEBUG
-  Serial.print(F("sendPacket("));
-  Serial.print(handle);
-  Serial.print(F(") ["));
-  Serial.print(start,HEX);
-  Serial.print(F("-"));
-  Serial.print(end,HEX);
-  Serial.print(F("]: "));
-  for (uint16_t i=start; i<=end; i++)
-    {
-      Serial.print(readByte(i),HEX);
-      Serial.print(F(" "));
-    }
-  Serial.println();
-#endif
+  #if ACTLOGLEVEL>=LOG_DEBUG
+    LogObject.print(F("Enc28J60Network::sendPacket(memhandle handle) DEBUG:sendPacket("));
+    LogObject.print(handle);
+    LogObject.print(F(") ["));
+    LogObject.print(start,HEX);
+    LogObject.print(F("-"));
+    LogObject.print(end,HEX);
+    LogObject.print(F("]: "));
+    for (uint16_t i=start; i<=end; i++)
+      {
+      LogObject.print(readByte(i),HEX);
+      LogObject.print(F(" "));
+      }
+    LogObject.println();
+  #endif
 
   // TX start
   writeRegPair(ETXSTL, start);
@@ -386,6 +419,9 @@ Enc28J60Network::sendPacket(memhandle handle)
 uint16_t
 Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len) DEBUG_V3:Function started"));
+  #endif
   memblock *packet = handle == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[handle];
   memaddress start = handle == UIP_RECEIVEBUFFERHANDLE && packet->begin + position > RXSTOP_INIT ? packet->begin + position-RXSTOP_INIT+RXSTART_INIT : packet->begin + position;
 
@@ -399,6 +435,12 @@ Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len)
 uint16_t
 Enc28J60Network::readPacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::readPacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len) DEBUG_V3:Function started"));
+  #endif
+  #if defined(ESP8266)
+     wdt_reset();
+  #endif
   len = setReadPtr(handle, position, len);
   readBuffer(len, buffer);
   return len;
@@ -407,6 +449,13 @@ Enc28J60Network::readPacket(memhandle handle, memaddress position, uint8_t* buff
 uint16_t
 Enc28J60Network::writePacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.print(F("Enc28J60Network::writePacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len) DEBUG_V3:Function started with len:"));
+    LogObject.println(len);
+  #endif
+  #if defined(ESP8266)
+     wdt_reset();
+  #endif
   memblock *packet = &blocks[handle];
   uint16_t start = packet->begin + position;
 
@@ -420,12 +469,18 @@ Enc28J60Network::writePacket(memhandle handle, memaddress position, uint8_t* buf
 
 
 void Enc28J60Network::enableBroadcast (bool temporary) {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::enableBroadcast (bool temporary) DEBUG_V3:Function started"));
+  #endif
     writeRegByte(ERXFCON, readRegByte(ERXFCON) | ERXFCON_BCEN);
     if(!temporary)
         broadcast_enabled = true;
 }
 
 void Enc28J60Network::disableBroadcast (bool temporary) {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::disableBroadcast (bool temporary) DEBUG_V3:Function started"));
+  #endif
     if(!temporary)
         broadcast_enabled = false;
     if(!broadcast_enabled)
@@ -433,19 +488,31 @@ void Enc28J60Network::disableBroadcast (bool temporary) {
 }
 
 void Enc28J60Network::enableMulticast () {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::enableMulticast () DEBUG_V3:Function started"));
+  #endif
     writeRegByte(ERXFCON, readRegByte(ERXFCON) | ERXFCON_MCEN);
 }
 
 void Enc28J60Network::disableMulticast () {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::disableMulticast () DEBUG_V3:Function started"));
+  #endif
     writeRegByte(ERXFCON, readRegByte(ERXFCON) & ~ERXFCON_MCEN);
 }
 
 byte Enc28J60Network::readRegByte (uint8_t address) {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::readRegByte (uint8_t address) DEBUG_V3:Function started"));
+  #endif
     setBank(address);
     return readOp(ENC28J60_READ_CTRL_REG, address);
 }
 
 void Enc28J60Network::writeRegByte (uint8_t address, uint8_t data) {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::writeRegByte (uint8_t address, uint8_t data) DEBUG_V3:Function started"));
+  #endif
     setBank(address);
     writeOp(ENC28J60_WRITE_CTRL_REG, address, data);
 }
@@ -453,6 +520,12 @@ void Enc28J60Network::writeRegByte (uint8_t address, uint8_t data) {
 
 uint8_t Enc28J60Network::readByte(uint16_t addr)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::readByte(uint16_t addr) DEBUG_V3:Function started"));
+  #endif
+  #if defined(ESP8266)
+     wdt_reset();
+  #endif
   writeRegPair(ERDPTL, addr);
 
   CSACTIVE;
@@ -477,6 +550,12 @@ uint8_t Enc28J60Network::readByte(uint16_t addr)
 
 void Enc28J60Network::writeByte(uint16_t addr, uint8_t data)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::writeByte(uint16_t addr, uint8_t data) DEBUG_V3:Function started"));
+  #endif
+  #if defined(ESP8266)
+     wdt_reset();
+  #endif
   writeRegPair(EWRPTL, addr);
 
   CSACTIVE;
@@ -499,6 +578,9 @@ void Enc28J60Network::writeByte(uint16_t addr, uint8_t data)
 void
 Enc28J60Network::copyPacket(memhandle dest_pkt, memaddress dest_pos, memhandle src_pkt, memaddress src_pos, uint16_t len)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::copyPacket(memhandle dest_pkt, memaddress dest_pos, memhandle src_pkt, memaddress src_pos, uint16_t len) DEBUG_V3:Function started"));
+  #endif
   memblock *dest = &blocks[dest_pkt];
   memblock *src = src_pkt == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[src_pkt];
   memaddress start = src_pkt == UIP_RECEIVEBUFFERHANDLE && src->begin + src_pos > RXSTOP_INIT ? src->begin + src_pos-RXSTOP_INIT+RXSTART_INIT : src->begin + src_pos;
@@ -511,6 +593,9 @@ Enc28J60Network::copyPacket(memhandle dest_pkt, memaddress dest_pos, memhandle s
 void
 enc28J60_mempool_block_move_callback(memaddress dest, memaddress src, memaddress len)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("enc28J60_mempool_block_move_callback(memaddress dest, memaddress src, memaddress len) DEBUG_V3:Function started"));
+  #endif
 //void
 //Enc28J60Network::memblock_mv_cb(uint16_t dest, uint16_t src, uint16_t len)
 //{
@@ -556,19 +641,28 @@ enc28J60_mempool_block_move_callback(memaddress dest, memaddress src, memaddress
       Enc28J60Network::writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_DMAST);
 
       // wait until runnig DMA is completed
-      while (Enc28J60Network::readOp(ENC28J60_READ_CTRL_REG, ECON1) & ECON1_DMAST);
+      while (Enc28J60Network::readOp(ENC28J60_READ_CTRL_REG, ECON1) & ECON1_DMAST)
+         {
+         delay(1);
+         }
     }
 }
 
 void
 Enc28J60Network::freePacket()
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::freePacket() DEBUG_V3:Function started"));
+  #endif
     setERXRDPT();
 }
 
 uint8_t
 Enc28J60Network::readOp(uint8_t op, uint8_t address)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::readOp(uint8_t op, uint8_t address) DEBUG_V3:Function started"));
+  #endif
   CSACTIVE;
   // issue read command
 #if ENC28J60_USE_SPILIB
@@ -605,6 +699,9 @@ Enc28J60Network::readOp(uint8_t op, uint8_t address)
 void
 Enc28J60Network::writeOp(uint8_t op, uint8_t address, uint8_t data)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::writeOp(uint8_t op, uint8_t address, uint8_t data) DEBUG_V3:Function started"));
+  #endif
   CSACTIVE;
   // issue write command
 #if ENC28J60_USE_SPILIB
@@ -625,6 +722,9 @@ Enc28J60Network::writeOp(uint8_t op, uint8_t address, uint8_t data)
 void
 Enc28J60Network::readBuffer(uint16_t len, uint8_t* data)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::readBuffer(uint16_t len, uint8_t* data) DEBUG_V3:Function started"));
+  #endif
   CSACTIVE;
   // issue read command
 #if ENC28J60_USE_SPILIB  
@@ -653,6 +753,9 @@ Enc28J60Network::readBuffer(uint16_t len, uint8_t* data)
 void
 Enc28J60Network::writeBuffer(uint16_t len, uint8_t* data)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::writeBuffer(uint16_t len, uint8_t* data) DEBUG_V3:Function started"));
+  #endif
   CSACTIVE;
   // issue write command
 #if ENC28J60_USE_SPILIB  
@@ -680,6 +783,9 @@ Enc28J60Network::writeBuffer(uint16_t len, uint8_t* data)
 void
 Enc28J60Network::setBank(uint8_t address)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::setBank(uint8_t address) DEBUG_V3:Function started"));
+  #endif
   // set the bank (if needed)
   if((address & BANK_MASK) != bank)
   {
@@ -693,6 +799,9 @@ Enc28J60Network::setBank(uint8_t address)
 uint8_t
 Enc28J60Network::readReg(uint8_t address)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::readReg(uint8_t address) DEBUG_V3:Function started"));
+  #endif
   // set the bank
   setBank(address);
   // do the read
@@ -702,6 +811,9 @@ Enc28J60Network::readReg(uint8_t address)
 void
 Enc28J60Network::writeReg(uint8_t address, uint8_t data)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::writeReg(uint8_t address, uint8_t data) DEBUG_V3:Function started"));
+  #endif
   // set the bank
   setBank(address);
   // do the write
@@ -711,6 +823,9 @@ Enc28J60Network::writeReg(uint8_t address, uint8_t data)
 void
 Enc28J60Network::writeRegPair(uint8_t address, uint16_t data)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::writeRegPair(uint8_t address, uint16_t data) DEBUG_V3:Function started"));
+  #endif
   // set the bank
   setBank(address);
   // do the write
@@ -721,7 +836,10 @@ Enc28J60Network::writeRegPair(uint8_t address, uint16_t data)
 void
 Enc28J60Network::phyWrite(uint8_t address, uint16_t data)
 {
-  unsigned int timeout = 10000;
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::phyWrite(uint8_t address, uint16_t data) DEBUG_V3:Function started"));
+  #endif
+  unsigned int timeout = 15;
   // set the PHY register address
   writeReg(MIREGADR, address);
   // write the PHY data
@@ -729,11 +847,14 @@ Enc28J60Network::phyWrite(uint8_t address, uint16_t data)
   // wait until the PHY write completes
   while (readReg(MISTAT) & MISTAT_BUSY)
     {
-    delayMicroseconds(15);
+    delay(10);
+    #if defined(ESP8266)
+       wdt_reset();
+    #endif
     if (--timeout == 0)
       {
-      #ifdef ENC28J60DEBUG
-         Serial.println(F("Enc28J60Network::phyWrite  TIMEOUT !!!"));
+      #if ACTLOGLEVEL>=LOG_ERR
+         LogObject.println(F("Enc28J60Network::phyWrite ERROR:TIMEOUT !!!"));
       #endif
       return;
       }
@@ -743,21 +864,27 @@ Enc28J60Network::phyWrite(uint8_t address, uint16_t data)
 uint16_t
 Enc28J60Network::phyRead(uint8_t address)
 {
-  unsigned int timeout = 10000;
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::phyRead(uint8_t address) DEBUG_V3:Function started"));
+  #endif
+  unsigned int timeout = 15;
   writeReg(MIREGADR,address);
   writeReg(MICMD, MICMD_MIIRD);
   // wait until the PHY read completes
   while(readReg(MISTAT) & MISTAT_BUSY)
     {
-    delayMicroseconds(15);
+    delay(10);
+    #if defined(ESP8266)
+       wdt_reset();
+    #endif
     if (--timeout == 0)
       {
-      #ifdef ENC28J60DEBUG
-         Serial.println(F("Enc28J60Network::phyRead !!!"));
+      #if ACTLOGLEVEL>=LOG_ERR
+         LogObject.println(F("Enc28J60Network::phyRead ERROR:TIMEOUT !!!"));
       #endif
       return 0;
       }
-    } //and MIRDH
+    }
   writeReg(MICMD, 0);
   return (readReg(MIRDL) | readReg(MIRDH) << 8);
 }
@@ -765,20 +892,19 @@ Enc28J60Network::phyRead(uint8_t address)
 void
 Enc28J60Network::clkout(uint8_t clk)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::clkout(uint8_t clk) DEBUG_V3:Function started"));
+  #endif
   //setup clkout: 2 is 12.5MHz:
   writeReg(ECOCON, clk & 0x7);
-}
-
-// read the revision of the chip:
-uint8_t
-Enc28J60Network::getrev(void)
-{
-  return(readReg(EREVID));
 }
 
 uint16_t
 Enc28J60Network::chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t len)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t len) DEBUG_V3:Function started"));
+  #endif
   uint16_t t;
   len = setReadPtr(handle, pos, len)-1;
   CSACTIVE;
@@ -831,6 +957,9 @@ Enc28J60Network::chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t
 void
 Enc28J60Network::powerOff()
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::powerOff() DEBUG_V3:Function started"));
+  #endif
   writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_RXEN);
   delay(50);
   writeOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_VRPS);
@@ -841,15 +970,48 @@ Enc28J60Network::powerOff()
 void
 Enc28J60Network::powerOn()
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::powerOn() DEBUG_V3:Function started"));
+  #endif
   writeOp(ENC28J60_BIT_FIELD_CLR, ECON2, ECON2_PWRSV);
   delay(50);
   writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);
   delay(50);
 }
 
+// read erevid from object:
+uint8_t
+Enc28J60Network::geterevid(void)
+{
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.print(F("Enc28J60Network::geterevid(void) DEBUG_V3:Function started and return:"));
+    LogObject.println(erevid);
+  #endif
+  return(erevid);
+}
+
+// read the phstat2 of the chip:
+uint16_t
+Enc28J60Network::PhyStatus(void)
+{
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.print(F("Enc28J60Network::PhyStatus(void) DEBUG_V3:Function started"));
+    LogObject.println(erevid);
+  #endif
+  uint16_t phstat2;
+  phstat2=phyRead(PHSTAT2);
+  if ((phstat2 & 0x20) > 0) {phstat2=phstat2 &0x100;}
+  phstat2=(phstat2 & 0xFF00) | erevid;
+  if ((phstat2 & 0x8000) > 0) {phstat2=0;}
+  return phstat2;
+}
+
 bool
 Enc28J60Network::linkStatus()
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.println(F("Enc28J60Network::linkStatus() DEBUG_V3:Function started"));
+  #endif
   return (phyRead(PHSTAT2) & 0x0400) > 0;
 }
 

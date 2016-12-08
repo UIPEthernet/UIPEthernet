@@ -28,45 +28,74 @@
 #include "mempool.h"
 
 #if !defined(ENC28J60_CONTROL_CS)
-   #if defined(__AVR__)
-      #define ENC28J60_CONTROL_CS     SS // this is pin 10 on Uno and pin 53 on Mega256
-   #endif
-   #if defined(ARDUINO_ARCH_SAM)
-      #define ENC28J60_CONTROL_CS     SS // this is pin 53 on DUE
-   #endif
-   #if defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+   #if defined(__AVR__) || defined(ESP8266)
+      // Arduino Uno (__AVR__) SS defined to pin 10
+      // Arduino Mega(__AVR_ATmega2560__) SS defined to pin 53
+      // ESP8266 (ESP8266) SS defined to pin 15
+      #define ENC28J60_CONTROL_CS     SS
+   #elif defined(ARDUINO_ARCH_SAM)
+      // Arduino Due (ARDUINO_ARCH_SAM) BOARD_SPI_DEFAULT_SS (SS3) defined to pin 78
+      #define ENC28J60_CONTROL_CS     BOARD_SPI_DEFAULT_SS
+   #elif defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
       #ifdef ARDUINO_STM32F4_NETDUINO2PLUS
          #define ENC28J60_CONTROL_CS     PC8
       #else
-	 #include <SPI.h>
          #define ENC28J60_CONTROL_CS     SPI.nssPin()
          //#define ENC28J60_CONTROL_CS     PA4
       #endif
    #endif
-   //https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/using-the-arduino-addon
-   #if defined(ESP8266)
-//      #define SPI_MISO 12
-//      #define SPI_MOSI 13
-//      #define SPI_SCK 13
-      #define ENC28J60_CONTROL_CS     15 // this is pin 15 on ESP8266
+   #if defined(ENC28J60_CONTROL_CS)
+      #pragma message "Not defined ENC28J60_CONTROL_CS. Use borad default SS pin setting. You can configure in 'utility/Enc28J60Network.h'."
    #endif
 #endif
+#if !defined(ENC28J60_CONTROL_CS)
+   #error "Not defined ENC28J60_CONTROL_CS!"
+#endif
 
-#if defined(ARDUINO_ARCH_AVR)
-// AVR-specific code
-   #define SPI_MOSI        MOSI
-   #define SPI_MISO        MISO
-   #define SPI_SCK         SCK
-   #define SPI_SS          SS
-   #define ENC28J60_USE_SPILIB 0
-#elif defined(ARDUINO_ARCH_SAM) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__) || defined(ESP8266)
+#if !defined(SPI_MOSI)
+   #if defined(__AVR__) || defined(ESP8266)
+      #define SPI_MOSI MOSI
+   #elif defined(ARDUINO_ARCH_SAM)
+      #define SPI_MOSI PIN_SPI_MOSI
+   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+      #define SPI_MOSI SPI.mosiPin()
+   #endif
+#endif
+#if !defined(SPI_MOSI)
+   #error "Not defined SPI_MOSI!"
+#endif
+
+#if !defined(SPI_MISO)
+   #if defined(__AVR__) || defined(ESP8266)
+      #define SPI_MISO MISO
+   #elif defined(ARDUINO_ARCH_SAM)
+      #define SPI_MISO PIN_SPI_MISO
+   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+      #define SPI_MISO SPI.misoPin()
+   #endif
+#endif
+#if !defined(SPI_MISO)
+   #error "Not defined SPI_MISO!"
+#endif
+#if !defined(SPI_SCK)
+   #if defined(__AVR__) || defined(ESP8266)
+      #define SPI_SCK SCK
+   #elif defined(ARDUINO_ARCH_SAM)
+      #define SPI_SCK PIN_SPI_SCK
+   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+      #define SPI_SCK SPI.sckPin()
+   #endif
+#endif
+#if !defined(SPI_SCK)
+   #error "Not defined SPI_SCK!"
+#endif
+
+#if defined(ARDUINO_ARCH_SAM) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__) || defined(ESP8266)
+   #include <SPI.h>
    #define ENC28J60_USE_SPILIB 1
 #endif
 
 #define UIP_RECEIVEBUFFERHANDLE 0xff
-
-//ENC28J60DEBUGDEFINE for search
-//#define ENC28J60DEBUG
 
 /*
  * Empfangen von ip-header, arp etc...
@@ -79,6 +108,7 @@ class Enc28J60Network : public MemoryPool
 private:
   static uint16_t nextPacketPtr;
   static uint8_t bank;
+  static uint8_t erevid;
 
   static struct memblock receivePkt;
 
@@ -108,14 +138,17 @@ private:
   static uint8_t readRegByte (uint8_t address);
   static void writeRegByte (uint8_t address, uint8_t data);
 
+  static void waitxmswithwdtreset(uint16_t xms);
+
   friend void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
 
 public:
 
-  uint8_t getrev(void);
   void powerOn();
   void powerOff();
-  bool linkStatus();
+  static uint8_t geterevid(void);
+  uint16_t PhyStatus(void);
+  static bool linkStatus();
 
   static void init(uint8_t* macaddr);
   static memhandle receivePacket();
