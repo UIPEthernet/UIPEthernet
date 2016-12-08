@@ -15,12 +15,13 @@
  */
 
 #include <UIPEthernet.h>
+#include "utility/logging.h"
 
 EthernetUDP udp;
 
 void setup() {
 
-  Serial.begin(9600);
+  LogObject.begin(9600);
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
 
@@ -28,8 +29,8 @@ void setup() {
 
   int success = udp.begin(5000);
 
-  Serial.print(F("initialize: "));
-  Serial.println(success ? "success" : "failed");
+  LogObject.print(F("initialize: "));
+  LogObject.println(success ? "success" : "failed");
 
 }
 
@@ -43,27 +44,27 @@ void loop() {
         char* msg = (char*)malloc(size+1);
         int len = udp.read(msg,size+1);
         msg[len]=0;
-        Serial.print(F("received: '"));
-        Serial.print(msg);
+        LogObject.print(F("received: '"));
+        LogObject.print(msg);
         free(msg);
       }
     while ((size = udp.available())>0);
     //finish reading this packet:
     udp.flush();
-    Serial.println(F("'"));
+    LogObject.println(F("'"));
     int success;
     do
       {
-        Serial.print(F("remote ip: "));
-        Serial.println(udp.remoteIP());
-        Serial.print(F("remote port: "));
-        Serial.println(udp.remotePort());
+        LogObject.print(F("remote ip: "));
+        LogObject.println(udp.remoteIP());
+        LogObject.print(F("remote port: "));
+        LogObject.println(udp.remotePort());
         //send new packet back to ip/port of client. This also
         //configures the current connection to ignore packets from
         //other clients!
         success = udp.beginPacket(udp.remoteIP(),udp.remotePort());
-        Serial.print(F("beginPacket: "));
-        Serial.println(success ? "success" : "failed");
+        LogObject.print(F("beginPacket: "));
+        LogObject.println(success ? "success" : "failed");
     //beginPacket fails if remote ethaddr is unknown. In this case an
     //arp-request is send out first and beginPacket succeeds as soon
     //the arp-response is received.
@@ -72,17 +73,17 @@ void loop() {
 
     success = udp.println(F("hello world from arduino"));
 
-    Serial.print(F("bytes written: "));
-    Serial.println(success);
+    LogObject.print(F("bytes written: "));
+    LogObject.println(success);
 
     success = udp.endPacket();
 
-    Serial.print(F("endPacket: "));
-    Serial.println(success ? "success" : "failed");
+    LogObject.print(F("endPacket: "));
+    LogObject.println(success ? "success" : "failed");
 
     udp.stop();
     //restart with new connection to receive packets from other clients
-    Serial.print(F("restart connection: "));
-    Serial.println (udp.begin(5000) ? "success" : "failed");
+    LogObject.print(F("restart connection: "));
+    LogObject.println (udp.begin(5000) ? "success" : "failed");
   }
 }
