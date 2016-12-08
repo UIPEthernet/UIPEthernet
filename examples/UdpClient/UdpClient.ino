@@ -17,13 +17,14 @@
  */
 
 #include <UIPEthernet.h>
+#include "utility/logging.h"
 
 EthernetUDP udp;
 unsigned long next;
 
 void setup() {
 
-  Serial.begin(9600);
+  LogObject.begin(9600);
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
 
@@ -42,8 +43,8 @@ void loop() {
       do
         {
           success = udp.beginPacket(IPAddress(192,168,0,1),5000);
-          Serial.print(F("beginPacket: "));
-          Serial.println(success ? "success" : "failed");
+          LogObject.print(F("beginPacket: "));
+          LogObject.println(success ? "success" : "failed");
           //beginPacket fails if remote ethaddr is unknown. In this case an
           //arp-request is send out first and beginPacket succeeds as soon
           //the arp-response is received.
@@ -54,13 +55,13 @@ void loop() {
 
       success = udp.write("hello world from arduino");
 
-      Serial.print(F("bytes written: "));
-      Serial.println(success);
+      LogObject.print(F("bytes written: "));
+      LogObject.println(success);
 
       success = udp.endPacket();
 
-      Serial.print(F("endPacket: "));
-      Serial.println(success ? "success" : "failed");
+      LogObject.print(F("endPacket: "));
+      LogObject.println(success ? "success" : "failed");
 
       do
         {
@@ -71,17 +72,17 @@ void loop() {
       if (!success )
         goto stop;
 
-      Serial.print(F("received: '"));
+      LogObject.print(F("received: '"));
       do
         {
           int c = udp.read();
-          Serial.write(c);
+          LogObject.write(c);
           len++;
         }
       while ((success = udp.available())>0);
-      Serial.print(F("', "));
-      Serial.print(len);
-      Serial.println(F(" bytes"));
+      LogObject.print(F("', "));
+      LogObject.print(len);
+      LogObject.println(F(" bytes"));
 
       //finish reading this packet:
       udp.flush();
