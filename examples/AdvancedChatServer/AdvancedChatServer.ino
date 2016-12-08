@@ -21,6 +21,7 @@
  */
 
 #include <UIPEthernet.h>
+#include <utility/logging.h>
 
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network.
@@ -39,14 +40,14 @@ void setup() {
   // start listening for clients
   server.begin();
  // Open serial communications and wait for port to open:
-  Serial.begin(9600);
-   while (!Serial) {
+  LogObject.begin(9600);
+   while (!LogObject) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
 
 
-  Serial.print(F("Chat server address:"));
-  Serial.println(Ethernet.localIP());
+  LogObject.print(F("Chat server address:"));
+  LogObject.println(Ethernet.localIP());
 }
 
 void loop() {
@@ -73,7 +74,7 @@ void loop() {
           client.flush();
           // clead out the input buffer:
           client.flush();
-          Serial.println(F("We have a new client"));
+          LogObject.println(F("We have a new client"));
           client.println(F("Hello, client!"));
           client.print(F("my IP: "));
           client.println(Ethernet.localIP());
@@ -92,7 +93,7 @@ void loop() {
         }
       }
       // echo the bytes to the server as well:
-      Serial.write(thisChar);
+      LogObject.write(thisChar);
     }
   }
   for (byte i=0;i<4;i++) {
