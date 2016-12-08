@@ -24,6 +24,7 @@
 #include "Print.h"
 #include "Client.h"
 #include "utility/mempool.h"
+#include "utility/logging.h"
 
 extern "C" {
   #include "utility/uip.h"
@@ -98,13 +99,7 @@ private:
   static void _eatBlock(memhandle* blocks);
   static void _flushBlocks(memhandle* blocks);
 
-//UIPETHERNET_DEBUG_CLIENTDEFINE for search
-//#define UIPETHERNET_DEBUG_CLIENT
-#ifdef UIPETHERNET_DEBUG_CLIENT
-   #include "HardwareSerial.h"
-   #if defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-      #define Serial Serial1
-   #endif
+#if ACTLOGLEVEL>=LOG_DEBUG_V2
   static void _dumpAllData();
 #endif
 

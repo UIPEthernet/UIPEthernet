@@ -18,6 +18,7 @@
   */
 #include "UIPEthernet.h"
 #include "UIPServer.h"
+#include "utility/logging.h"
 extern "C" {
   #include "utility/uip-conf.h"
 }

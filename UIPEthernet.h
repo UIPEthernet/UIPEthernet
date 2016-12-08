@@ -20,12 +20,6 @@
 #ifndef UIPETHERNET_H
 #define UIPETHERNET_H
 
-//UIPETHERNET_DEBUGDEFINE for search
-//#define UIPETHERNET_DEBUG
-//#define UIPETHERNET_DEBUG_CHKSUM
-//#define UIPETHERNET_DEBUG_UDP
-//#define UIPETHERNET_DEBUG_CLIENT
-
 #include "ethernet_comp.h"
 #include <Arduino.h>
 #include "Dhcp.h"
