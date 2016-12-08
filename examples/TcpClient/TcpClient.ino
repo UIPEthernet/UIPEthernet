@@ -17,25 +17,26 @@
  */
 
 #include <UIPEthernet.h>
+#include "utility/logging.h"
 
 EthernetClient client;
 signed long next;
 
 void setup() {
 
-  Serial.begin(9600);
+  LogObject.begin(9600);
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
   Ethernet.begin(mac);
 
-  Serial.print(F("localIP: "));
-  Serial.println(Ethernet.localIP());
-  Serial.print(F("subnetMask: "));
-  Serial.println(Ethernet.subnetMask());
-  Serial.print(F("gatewayIP: "));
-  Serial.println(Ethernet.gatewayIP());
-  Serial.print(F("dnsServerIP: "));
-  Serial.println(Ethernet.dnsServerIP());
+  LogObject.print(F("localIP: "));
+  LogObject.println(Ethernet.localIP());
+  LogObject.print(F("subnetMask: "));
+  LogObject.println(Ethernet.subnetMask());
+  LogObject.print(F("gatewayIP: "));
+  LogObject.println(Ethernet.gatewayIP());
+  LogObject.print(F("dnsServerIP: "));
+  LogObject.println(Ethernet.dnsServerIP());
 
   next = 0;
 }
@@ -45,12 +46,12 @@ void loop() {
   if (((signed long)(millis() - next)) > 0)
     {
       next = millis() + 5000;
-      Serial.println(F("Client connect"));
+      LogObject.println(F("Client connect"));
       // replace hostname with name of machine running tcpserver.pl
 //      if (client.connect("server.local",5000))
       if (client.connect(IPAddress(192,168,0,1),5000))
         {
-          Serial.println(F("Client connected"));
+          LogObject.println(F("Client connected"));
           client.println(F("DATA from Client"));
           while(client.available()==0)
             {
@@ -62,15 +63,15 @@ void loop() {
             {
               uint8_t* msg = (uint8_t*)malloc(size);
               size = client.read(msg,size);
-              Serial.write(msg,size);
+              LogObject.write(msg,size);
               free(msg);
             }
 close:
           //disconnect client
-          Serial.println(F("Client disconnect"));
+          LogObject.println(F("Client disconnect"));
           client.stop();
         }
       else
-        Serial.println(F("Client connect failed"));
+        LogObject.println(F("Client connect failed"));
     }
 }
