@@ -24,19 +24,23 @@ signed long next;
 
 void setup() {
 
-  LogObject.begin(9600);
+  #if ACTLOGLEVEL>LOG_NONE
+    LogObject.begin(9600);
+  #endif
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
   Ethernet.begin(mac);
 
-  LogObject.print(F("localIP: "));
-  LogObject.println(Ethernet.localIP());
-  LogObject.print(F("subnetMask: "));
-  LogObject.println(Ethernet.subnetMask());
-  LogObject.print(F("gatewayIP: "));
-  LogObject.println(Ethernet.gatewayIP());
-  LogObject.print(F("dnsServerIP: "));
-  LogObject.println(Ethernet.dnsServerIP());
+  #if ACTLOGLEVEL>=LOG_INFO
+    LogObject.uart_send_str(F("localIP: "));
+    LogObject.println(Ethernet.localIP());
+    LogObject.uart_send_str(F("subnetMask: "));
+    LogObject.println(Ethernet.subnetMask());
+    LogObject.uart_send_str(F("gatewayIP: "));
+    LogObject.println(Ethernet.gatewayIP());
+    LogObject.uart_send_str(F("dnsServerIP: "));
+    LogObject.println(Ethernet.dnsServerIP());
+  #endif
 
   next = 0;
 }
@@ -46,12 +50,16 @@ void loop() {
   if (((signed long)(millis() - next)) > 0)
     {
       next = millis() + 5000;
-      LogObject.println(F("Client connect"));
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.uart_send_strln(F("Client connect"));
+      #endif
       // replace hostname with name of machine running tcpserver.pl
 //      if (client.connect("server.local",5000))
       if (client.connect(IPAddress(192,168,0,1),5000))
         {
-          LogObject.println(F("Client connected"));
+          #if ACTLOGLEVEL>=LOG_INFO
+            LogObject.uart_send_strln(F("Client connected"));
+          #endif
           client.println(F("DATA from Client"));
           while(client.available()==0)
             {
@@ -63,15 +71,21 @@ void loop() {
             {
               uint8_t* msg = (uint8_t*)malloc(size);
               size = client.read(msg,size);
-              LogObject.write(msg,size);
+              #if ACTLOGLEVEL>=LOG_INFO
+                LogObject.write(msg,size);
+              #endif
               free(msg);
             }
 close:
           //disconnect client
-          LogObject.println(F("Client disconnect"));
+          #if ACTLOGLEVEL>=LOG_INFO
+            LogObject.uart_send_strln(F("Client disconnect"));
+          #endif
           client.stop();
         }
       else
-        LogObject.println(F("Client connect failed"));
+        #if ACTLOGLEVEL>=LOG_INFO
+          LogObject.uart_send_strln(F("Client connect failed"));
+        #endif
     }
 }
