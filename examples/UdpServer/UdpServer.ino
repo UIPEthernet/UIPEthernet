@@ -21,7 +21,9 @@ EthernetUDP udp;
 
 void setup() {
 
-  LogObject.begin(9600);
+  #if ACTLOGLEVEL>LOG_NONE
+    LogObject.begin(9600);
+  #endif
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
 
@@ -29,8 +31,10 @@ void setup() {
 
   int success = udp.begin(5000);
 
-  LogObject.print(F("initialize: "));
-  LogObject.println(success ? "success" : "failed");
+  #if ACTLOGLEVEL>=LOG_INFO
+    LogObject.uart_send_str(F("initialize: "));
+    LogObject.uart_send_strln(success ? "success" : "failed");
+  #endif
 
 }
 
@@ -44,27 +48,35 @@ void loop() {
         char* msg = (char*)malloc(size+1);
         int len = udp.read(msg,size+1);
         msg[len]=0;
-        LogObject.print(F("received: '"));
-        LogObject.print(msg);
+        #if ACTLOGLEVEL>=LOG_INFO
+          LogObject.uart_send_str(F("received: '"));
+          LogObject.uart_send_str(msg);
+        #endif
         free(msg);
       }
     while ((size = udp.available())>0);
     //finish reading this packet:
     udp.flush();
-    LogObject.println(F("'"));
+    #if ACTLOGLEVEL>=LOG_INFO
+      LogObject.uart_send_strln(F("'"));
+    #endif
     int success;
     do
       {
-        LogObject.print(F("remote ip: "));
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.uart_send_str(F("remote ip: "));
         LogObject.println(udp.remoteIP());
-        LogObject.print(F("remote port: "));
+        LogObject.uart_send_str(F("remote port: "));
         LogObject.println(udp.remotePort());
+      #endif
         //send new packet back to ip/port of client. This also
         //configures the current connection to ignore packets from
         //other clients!
         success = udp.beginPacket(udp.remoteIP(),udp.remotePort());
-        LogObject.print(F("beginPacket: "));
-        LogObject.println(success ? "success" : "failed");
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.uart_send_str(F("beginPacket: "));
+        LogObject.uart_send_strln(success ? "success" : "failed");
+      #endif
     //beginPacket fails if remote ethaddr is unknown. In this case an
     //arp-request is send out first and beginPacket succeeds as soon
     //the arp-response is received.
@@ -73,17 +85,23 @@ void loop() {
 
     success = udp.println(F("hello world from arduino"));
 
-    LogObject.print(F("bytes written: "));
-    LogObject.println(success);
+    #if ACTLOGLEVEL>=LOG_INFO
+      LogObject.uart_send_str(F("bytes written: "));
+      LogObject.uart_send_decln(success);
+    #endif
 
     success = udp.endPacket();
 
-    LogObject.print(F("endPacket: "));
-    LogObject.println(success ? "success" : "failed");
+    #if ACTLOGLEVEL>=LOG_INFO
+      LogObject.uart_send_str(F("endPacket: "));
+      LogObject.uart_send_strln(success ? "success" : "failed");
+    #endif
 
     udp.stop();
     //restart with new connection to receive packets from other clients
-    LogObject.print(F("restart connection: "));
-    LogObject.println (udp.begin(5000) ? "success" : "failed");
+    #if ACTLOGLEVEL>=LOG_INFO
+      LogObject.uart_send_str(F("restart connection: "));
+      LogObject.uart_send_strln(udp.begin(5000) ? "success" : "failed");
+    #endif
   }
 }
