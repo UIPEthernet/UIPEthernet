@@ -28,7 +28,9 @@ EthernetServer server = EthernetServer(1000);
 
 void setup()
 {
-  LogObject.begin(9600);
+  #if ACTLOGLEVEL>LOG_NONE
+    LogObject.begin(9600);
+  #endif
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
   IPAddress myIP(192,168,0,6);
@@ -50,7 +52,9 @@ void loop()
             {
               uint8_t* msg = (uint8_t*)malloc(size);
               size = client.read(msg,size);
-              LogObject.write(msg,size);
+              #if ACTLOGLEVEL>=LOG_INFO
+                LogObject.uart_send_buf_len(msg,size);
+              #endif
               client.write(msg,size);
               free(msg);
             }
