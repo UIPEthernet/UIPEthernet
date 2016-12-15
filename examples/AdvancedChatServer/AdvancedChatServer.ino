@@ -40,14 +40,18 @@ void setup() {
   // start listening for clients
   server.begin();
  // Open serial communications and wait for port to open:
-  LogObject.begin(9600);
-   while (!LogObject) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }
+  #if ACTLOGLEVEL>LOG_NONE
+    LogObject.begin(9600);
+    while (!LogObject)
+      {
+      ; // wait for serial port to connect. Needed for Leonardo only
+      }
+  #endif
 
-
-  LogObject.print(F("Chat server address:"));
-  LogObject.println(Ethernet.localIP());
+  #if ACTLOGLEVEL>=LOG_INFO
+    LogObject.uart_send_str(F("Chat server address:"));
+    LogObject.println(Ethernet.localIP());
+  #endif
 }
 
 void loop() {
@@ -74,7 +78,9 @@ void loop() {
           client.flush();
           // clead out the input buffer:
           client.flush();
-          LogObject.println(F("We have a new client"));
+          #if ACTLOGLEVEL>=LOG_INFO
+            LogObject.uart_send_strln(F("We have a new client"));
+          #endif
           client.println(F("Hello, client!"));
           client.print(F("my IP: "));
           client.println(Ethernet.localIP());
@@ -93,7 +99,9 @@ void loop() {
         }
       }
       // echo the bytes to the server as well:
-      LogObject.write(thisChar);
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.write(thisChar);
+      #endif
     }
   }
   for (byte i=0;i<4;i++) {
