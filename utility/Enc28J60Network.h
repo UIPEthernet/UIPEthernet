@@ -26,6 +26,35 @@
 #define Enc28J60Network_H_
 
 #include "mempool.h"
+#if defined(__MBED__)
+  #include <mbed.h>
+  //UIPEthernet(SPI_MOSI, SPI_MISO, SPI_SCK, SPI_CS);
+  #if defined(TARGET_LPC1768)
+    #define SPI_MOSI p11
+    #define SPI_MISO p12
+    #define SPI_SCK  p13
+    #define SPI_CS   p8
+  #elif defined(TARGET_LPC1114)
+    #define SPI_MOSI dp2
+    #define SPI_MISO dp1
+    #define SPI_SCK  dp6
+    #define SPI_CS   dp25
+  #elif defined(TARGET_LPC11U68)
+    #define SPI_MOSI P0_9
+    #define SPI_MISO P0_8
+    #define SPI_SCK  P1_29
+    #define SPI_CS   P0_2
+  #elif defined(TARGET_NUCLEO_F103RB) || defined(TARGET_NUCLEO_L152RE) || defined(TARGET_NUCLEO_F030R8)  \
+    || defined(TARGET_NUCLEO_F401RE) || defined(TARGET_NUCLEO_F302R8) || defined(TARGET_NUCLEO_L053R8)  \
+    || defined(TARGET_NUCLEO_F411RE) || defined(TARGET_NUCLEO_F334R8) || defined(TARGET_NUCLEO_F072RB)  \
+    || defined(TARGET_NUCLEO_F091RC) || defined(TARGET_NUCLEO_F303RE) || defined(TARGET_NUCLEO_F070RB)
+    #define SPI_MOSI D4
+    #define SPI_MISO D5
+    #define SPI_SCK  D3
+    #define SPI_CS   D2
+  #endif
+  #define ENC28J60_CONTROL_CS SPI_CS
+#endif
 
 #if !defined(ENC28J60_CONTROL_CS)
    #if defined(__AVR__) || defined(ESP8266)
@@ -90,7 +119,7 @@
    #error "Not defined SPI_SCK!"
 #endif
 
-#if defined(ARDUINO_ARCH_SAM) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__) || defined(ESP8266)
+#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__) || defined(ESP8266)
    #include <SPI.h>
    #define ENC28J60_USE_SPILIB 1
 #endif
@@ -117,7 +146,7 @@ private:
   static uint8_t readOp(uint8_t op, uint8_t address);
   static void writeOp(uint8_t op, uint8_t address, uint8_t data);
   static uint16_t setReadPtr(memhandle handle, memaddress position, uint16_t len);
-  static void setERXRDPT();
+  static void setERXRDPT(void);
   static void readBuffer(uint16_t len, uint8_t* data);
   static void writeBuffer(uint16_t len, uint8_t* data);
   static uint8_t readByte(uint16_t addr);
@@ -132,8 +161,8 @@ private:
 
   static void enableBroadcast (bool temporary);
   static void disableBroadcast (bool temporary);
-  static void enableMulticast ();
-  static void disableMulticast ();
+  static void enableMulticast (void);
+  static void disableMulticast (void);
 
   static uint8_t readRegByte (uint8_t address);
   static void writeRegByte (uint8_t address, uint8_t data);
@@ -142,15 +171,15 @@ private:
 
 public:
 
-  void powerOn();
-  void powerOff();
+  void powerOn(void);
+  void powerOff(void);
   static uint8_t geterevid(void);
   uint16_t PhyStatus(void);
-  static bool linkStatus();
+  static bool linkStatus(void);
 
   static void init(uint8_t* macaddr);
-  static memhandle receivePacket();
-  static void freePacket();
+  static memhandle receivePacket(void);
+  static void freePacket(void);
   static memaddress blockSize(memhandle handle);
   static void sendPacket(memhandle handle);
   static uint16_t readPacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len);

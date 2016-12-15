@@ -16,15 +16,47 @@
 
 #pragma message "You can configure LogObject and ACTLOGLEVEL in 'utility/logging.h'. More verbosity more memory usage."
 //#define ACTLOGLEVEL     LOG_NONE
-#define ACTLOGLEVEL LOG_INFO
+//#define ACTLOGLEVEL LOG_INFO
+#define ACTLOGLEVEL LOG_DEBUG_V3
 
 #if ACTLOGLEVEL>LOG_NONE 
-   #include "HardwareSerial.h"
-   #if defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-      #define LogObject Serial1
-   #else
-      #define LogObject Serial
+   #if defined(ARDUINO)
+     #include "HardwareSerial.h"
+     #if defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+        #define LogObject Serial1
+     #else
+        #define LogObject Serial
+     #endif
+     #define uart_send_str(x) print(x)
+     #define uart_send_strln(x) println(x)
+     #define uart_send_dec(x) print(x)
+     #define uart_send_decln(x) println(x)
+     #define uart_send_hex(x) print(x,HEX)
+     #define uart_send_hexln(x) println(x,HEX)
+     #define uart_send_bin(x) print(x,BIN)
+     #define uart_send_binln(x) println(x,BIN)
+     #define uart_send_buf_len(buf,len) write(buf,len)
    #endif
+   #if defined(__MBED__)
+     #include <mbed.h>
+     extern Serial LogObject;
+     #define uart_send_str(x) printf("%s",x)
+     #define uart_send_strln(x) printf("%s\n",x)
+     #define uart_send_dec(x) printf("%d",x)
+     #define uart_send_decln(x) printf("%d",x)
+     #define uart_send_hex(x) printf("%X",x)
+     #define uart_send_hexln(x) printf("%X",x)
+     #define uart_send_bin(x) printf("%B",x)
+     #define uart_send_binln(x) printf("%B",x)
+     #define uart_send_buf_len(buf,len) printf("%.*s",len,buf);
+   #endif
+#endif
+
+#if defined(__MBED__) || defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+   #define F(x) (const char *)(x)
+   #define FP(x) (const char *)(x)
+#else
+   #define FP(x)     (__FlashStringHelper*)(x)         // Helper
 #endif
 
 #endif
