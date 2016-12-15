@@ -1,5 +1,5 @@
 /*
- UIPUdp.h - Arduino implementation of a uIP wrapper class.
+ UIPUdp.h - Arduino implementation of a uIP wrapper class
  Copyright (c) 2013 Norbert Truchsess <norbert.truchsess@t-online.de>
  All rights reserved.
 
@@ -21,8 +21,14 @@
 #define UIPUDP_H
 
 #include "ethernet_comp.h"
-#include "Arduino.h"
-#include <Udp.h>
+#if defined(__MBED__)
+  #include <mbed.h>
+  #include "mbed/Udp.h"
+#endif
+#if defined(ARDUINO)
+  #include <Arduino.h>
+  #include <Udp.h>
+#endif
 #include "utility/mempool.h"
 extern "C" {
   #include "utility/uip.h"
@@ -49,11 +55,11 @@ private:
   uip_udp_userdata_t appdata;
 
 public:
-  UIPUDP();  // Constructor
+  UIPUDP(void);  // Constructor
   uint8_t
   begin(uint16_t);// initialize, start listening on specified port. Returns 1 if successful, 0 if there are no sockets available to use
   void
-  stop();  // Finish with the UDP socket
+  stop(void);  // Finish with the UDP socket
 
   // Sending UDP packets
 
@@ -68,7 +74,7 @@ public:
   // Finish off this packet and send it
   // Returns 1 if the packet was sent successfully, 0 if there was an error
   int
-  endPacket();
+  endPacket(void);
   // Write a single byte into the packet
   size_t
   write(uint8_t);
@@ -76,18 +82,19 @@ public:
   size_t
   write(const uint8_t *buffer, size_t size);
 
-  using Print::write;
-
+  #if defined(ARDUINO)
+  	  using Print::write;
+  #endif
   // Start processing the next available incoming packet
   // Returns the size of the packet in bytes, or 0 if no packets are available
   int
-  parsePacket();
+  parsePacket(void);
   // Number of bytes remaining in the current packet
   int
-  available();
+  available(void);
   // Read a single byte from the current packet
   int
-  read();
+  read(void);
   // Read up to len bytes from the current packet and place them into buffer
   // Returns the number of bytes read, or 0 if none are available
   int
@@ -102,17 +109,17 @@ public:
   ;
   // Return the next byte from the current packet without moving on to the next byte
   int
-  peek();
+  peek(void);
   void
-  flush();	// Finish reading the current packet
+  flush(void);	// Finish reading the current packet
 
   // Return the IP address of the host who sent the current incoming packet
   IPAddress
-  remoteIP();
+  remoteIP(void);
 
   // Return the port of the host who sent the current incoming packet
   uint16_t
-  remotePort();
+  remotePort(void);
 
 private:
 

@@ -20,7 +20,12 @@
 #define UIPSERVER_H
 
 #include "ethernet_comp.h"
-#include "Server.h"
+#if defined(ARDUINO)
+   #include "Server.h"
+#endif
+#if defined(__MBED__)
+   #include "mbed/Server.h"
+#endif
 #include "UIPClient.h"
 
 class UIPServer : public Server {
@@ -31,7 +36,9 @@ public:
   void begin();
   size_t write(uint8_t);
   size_t write(const uint8_t *buf, size_t size);
-  using Print::write;
+  #if defined(ARDUINO)
+     using Print::write;
+  #endif
 
 private:
   uint16_t _port;

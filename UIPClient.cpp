@@ -16,6 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "utility/logging.h"
 
 extern "C"
 {
@@ -24,13 +25,16 @@ extern "C"
 #include "utility/uip_arp.h"
 #include "string.h"
 }
-#include "utility/logging.h"
 #include "UIPEthernet.h"
 #include "UIPClient.h"
 #include "Dns.h"
 
 #if defined(__AVR__)
    #include <avr/wdt.h>
+#endif
+
+#if defined(__MBED__)
+   #include "mbed/millis.h"
 #endif
 
 #define UIP_TCP_PHYH_LEN UIP_LLH_LEN+UIP_IPTCPH_LEN
@@ -51,7 +55,7 @@ int
 UIPClient::connect(IPAddress ip, uint16_t port)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::connect(IPAddress ip, uint16_t port) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::connect(IPAddress ip, uint16_t port) DEBUG_V3:Function started"));
   #endif
   stop();
   uip_ipaddr_t ipaddr;
@@ -69,10 +73,10 @@ UIPClient::connect(IPAddress ip, uint16_t port)
             {
             data = (uip_userdata_t*) conn->appstate;
             #if ACTLOGLEVEL>=LOG_DEBUG
-              LogObject.print(F("UIPClient::connect DEBUG:connected, state: "));
-              LogObject.print(data->state);
-              LogObject.print(F(", first packet in: "));
-              LogObject.println(data->packets_in[0]);
+              LogObject.uart_send_str(F("UIPClient::connect DEBUG:connected, state: "));
+              LogObject.uart_send_dec(data->state);
+              LogObject.uart_send_str(F(", first packet in: "));
+              LogObject.uart_send_decln(data->packets_in[0]);
             #endif
             return 1;
             }
@@ -92,7 +96,7 @@ int
 UIPClient::connect(const char *host, uint16_t port)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::connect(const char *host, uint16_t port) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::connect(const char *host, uint16_t port) DEBUG_V3:Function started"));
   #endif
   // Look up the host first
   int ret = 0;
@@ -113,12 +117,12 @@ void
 UIPClient::stop()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::stop() DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::stop() DEBUG_V3:Function started"));
   #endif
   if (data && data->state)
     {
     #if ACTLOGLEVEL>=LOG_DEBUG_V2
-      LogObject.println(F("UIPClient::stop() DEBUG_V2:Before stop(), with data"));
+      LogObject.uart_send_strln(F("UIPClient::stop() DEBUG_V2:Before stop(), with data"));
       _dumpAllData();
     #endif
       _flushBlocks(&data->packets_in[0]);
@@ -131,14 +135,14 @@ UIPClient::stop()
           data->state |= UIP_CLIENT_CLOSE;
         }
     #if ACTLOGLEVEL>=LOG_DEBUG_V2
-      LogObject.println(F("UIPClient::stop() DEBUG_V2:after stop()"));
+      LogObject.uart_send_strln(F("UIPClient::stop() DEBUG_V2:after stop()"));
       _dumpAllData();
     #endif
     }
 #if ACTLOGLEVEL>=LOG_DEBUG
   else
     {
-      LogObject.println(F("UIPClient::stop() DEBUG:stop(), data: NULL"));
+      LogObject.uart_send_strln(F("UIPClient::stop() DEBUG:stop(), data: NULL"));
     }
 #endif
   data = NULL;
@@ -149,7 +153,7 @@ uint8_t
 UIPClient::connected()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::connected() DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::connected() DEBUG_V3:Function started"));
   #endif
   return (data && (data->packets_in[0] != NOBLOCK || (data->state & UIP_CLIENT_CONNECTED))) ? 1 : 0;
 }
@@ -158,7 +162,7 @@ bool
 UIPClient::operator==(const UIPClient& rhs)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::operator==(const UIPClient& rhs) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::operator==(const UIPClient& rhs) DEBUG_V3:Function started"));
   #endif
   return data && rhs.data && (data == rhs.data);
 }
@@ -166,7 +170,7 @@ UIPClient::operator==(const UIPClient& rhs)
 UIPClient::operator bool()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::operator bool() DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::operator bool() DEBUG_V3:Function started"));
   #endif
   UIPEthernetClass::tick();
   return data && (!(data->state & UIP_CLIENT_REMOTECLOSED) || data->packets_in[0] != NOBLOCK);
@@ -176,7 +180,7 @@ size_t
 UIPClient::write(uint8_t c)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::write(uint8_t c) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::write(uint8_t c) DEBUG_V3:Function started"));
   #endif
   return _write(data, &c, 1);
 }
@@ -185,7 +189,7 @@ size_t
 UIPClient::write(const uint8_t *buf, size_t size)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::write(const uint8_t *buf, size_t size) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::write(const uint8_t *buf, size_t size) DEBUG_V3:Function started"));
   #endif
   return _write(data, buf, size);
 }
@@ -194,7 +198,7 @@ size_t
 UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size) DEBUG_V3:Function started"));
   #endif
   int remain = size;
   uint16_t written;
@@ -223,17 +227,25 @@ newpacket:
           u->out_pos = 0;
         }
 #if ACTLOGLEVEL>=LOG_DEBUG
-      LogObject.print(F("UIPClient::_write DEBUG:writePacket("));
-      LogObject.print(u->packets_out[p]);
-      LogObject.print(F(") pos: "));
-      LogObject.print(u->out_pos);
-      LogObject.print(F(", buf["));
-      LogObject.print(size-remain);
-      LogObject.print(F("-"));
-      LogObject.print(remain);
-      LogObject.print(F("]: '"));
-      LogObject.write((uint8_t*)buf+size-remain,remain);
-      LogObject.println(F("'"));
+      LogObject.uart_send_str(F("UIPClient::_write DEBUG:writePacket("));
+      LogObject.uart_send_dec(u->packets_out[p]);
+      LogObject.uart_send_str(F(") pos: "));
+      LogObject.uart_send_dec(u->out_pos);
+      LogObject.uart_send_str(F(", buf["));
+      LogObject.uart_send_dec(size-remain);
+      LogObject.uart_send_str(F("-"));
+      LogObject.uart_send_dec(remain);
+      LogObject.uart_send_str(F("]: '"));
+      #if defined(ARDUINO)
+        LogObject.uart_send_buf_len((uint8_t*)buf+size-remain,remain);
+      #endif
+      #if defined(__MBED__)
+        for(int i=0; i<remain; i++)
+          {
+	  //LogObject.uart_send_buf_len((uint8_t*)buf+size-remain,remain); //MBED buffer out serial
+          }
+      #endif
+      LogObject.uart_send_strln(F("'"));
 #endif
       written = Enc28J60Network::writePacket(u->packets_out[p],u->out_pos,(uint8_t*)buf+size-remain,remain);
       remain -= written;
@@ -266,7 +278,7 @@ int
 UIPClient::available()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::available() DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::available() DEBUG_V3:Function started"));
   #endif
   if (*this)
     return _available(data);
@@ -277,7 +289,7 @@ int
 UIPClient::_available(uip_userdata_t *u)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::_available(uip_userdata_t *u) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::_available(uip_userdata_t *u) DEBUG_V3:Function started"));
   #endif
   int len = 0;
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
@@ -291,7 +303,7 @@ int
 UIPClient::read(uint8_t *buf, size_t size)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::read(uint8_t *buf, size_t size) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::read(uint8_t *buf, size_t size) DEBUG_V3:Function started"));
   #endif
   if (*this)
     {
@@ -334,7 +346,7 @@ int
 UIPClient::read()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::read() DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::read() DEBUG_V3:Function started"));
   #endif
   uint8_t c;
   if (read(&c,1) < 0)
@@ -346,7 +358,7 @@ int
 UIPClient::peek()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::peek() DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::peek() DEBUG_V3:Function started"));
   #endif
   if (*this)
     {
@@ -364,7 +376,7 @@ void
 UIPClient::flush()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::flush() DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::flush() DEBUG_V3:Function started"));
   #endif
   if (*this)
     {
@@ -376,14 +388,14 @@ void
 uipclient_appcall(void)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("uipclient_appcall(void) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V3:Function started"));
   #endif
   uint16_t send_len = 0;
   uip_userdata_t *u = (uip_userdata_t*)uip_conn->appstate;
   if (!u && uip_connected())
     {
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
-      LogObject.println(F("uipclient_appcall(void) DEBUG_V2:UIPClient uip_connected"));
+      LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V2:UIPClient uip_connected"));
       UIPClient::_dumpAllData();
 #endif
       u = (uip_userdata_t*) UIPClient::_allocateData();
@@ -391,13 +403,13 @@ uipclient_appcall(void)
         {
           uip_conn->appstate = u;
 #if ACTLOGLEVEL>=LOG_DEBUG_V1
-          LogObject.print(F("uipclient_appcall(void) DEBUG_V1:UIPClient allocated state: "));
-          LogObject.println(u->state,BIN);
+          LogObject.uart_send_str(F("uipclient_appcall(void) DEBUG_V1:UIPClient allocated state: "));
+          LogObject.uart_send_binln(u->state);
 #endif
         }
 #if ACTLOGLEVEL>=LOG_ERR
       else
-        LogObject.println(F("uipclient_appcall(void) ERROR:UIPClient allocation failed"));
+        LogObject.uart_send_strln(F("uipclient_appcall(void) ERROR:UIPClient allocation failed"));
 #endif
     }
   if (u)
@@ -405,8 +417,8 @@ uipclient_appcall(void)
       if (uip_newdata())
         {
 #if ACTLOGLEVEL>=LOG_DEBUG
-          LogObject.print(F("uipclient_appcall(void) DEBUG:UIPClient uip_newdata, uip_len:"));
-          LogObject.println(uip_len);
+          LogObject.uart_send_str(F("uipclient_appcall(void) DEBUG:UIPClient uip_newdata, uip_len:"));
+          LogObject.uart_send_decln(uip_len);
 #endif
           if (uip_len && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
             {
@@ -438,7 +450,7 @@ finish_newdata:
       if (uip_closed() || uip_timedout())
         {
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
-          LogObject.println(F("uipclient_appcall(void) DEBUG_V2:UIPClient uip_closed"));
+          LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V2:UIPClient uip_closed"));
           UIPClient::_dumpAllData();
 #endif
           // drop outgoing packets not sent yet:
@@ -452,7 +464,7 @@ finish_newdata:
             u->state = 0;
           // disassociate appdata.
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
-          LogObject.println(F("uipclient_appcall(void) DEBUG_V2:After UIPClient uip_closed"));
+          LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V2:After UIPClient uip_closed"));
           UIPClient::_dumpAllData();
 #endif
           uip_conn->appstate = NULL;
@@ -461,14 +473,14 @@ finish_newdata:
       if (uip_acked())
         {
 #if ACTLOGLEVEL>=LOG_DEBUG
-          LogObject.println(F("uipclient_appcall(void) DEBUG:UIPClient uip_acked"));
+          LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG:UIPClient uip_acked"));
 #endif
           UIPClient::_eatBlock(&u->packets_out[0]);
         }
       if (uip_poll() || uip_rexmit())
         {
 #if ACTLOGLEVEL>=LOG_DEBUG
-          LogObject.println(F("uipclient_appcall(void) DEBUG:UIPClient uip_poll ||uip_remix"));
+          LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG:UIPClient uip_poll ||uip_remix"));
 #endif
           if (u->packets_out[0] != NOBLOCK)
             {
@@ -499,7 +511,7 @@ finish_newdata:
       if (u->state & UIP_CLIENT_CLOSE)
         {
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
-          LogObject.println(F("uipclient_appcall(void) DEBUG_V2:UIPClient state UIP_CLIENT_CLOSE"));
+          LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V2:UIPClient state UIP_CLIENT_CLOSE"));
           UIPClient::_dumpAllData();
 #endif
           if (u->packets_out[0] == NOBLOCK)
@@ -508,7 +520,7 @@ finish_newdata:
               uip_conn->appstate = NULL;
               uip_close();
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
-              LogObject.println(F("uipclient_appcall(void) DEBUG_V2:no blocks out -> free userdata"));
+              LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V2:no blocks out -> free userdata"));
               UIPClient::_dumpAllData();
 #endif
             }
@@ -516,7 +528,7 @@ finish_newdata:
             {
               uip_stop();
 #if ACTLOGLEVEL>=LOG_DEBUG
-              LogObject.println(F("uipclient_appcall(void) DEBUG:blocks outstanding transfer -> uip_stop()"));
+              LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG:blocks outstanding transfer -> uip_stop()"));
 #endif
             }
         }
@@ -530,7 +542,7 @@ uip_userdata_t *
 UIPClient::_allocateData()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::_allocateData() DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::_allocateData() DEBUG_V3:Function started"));
   #endif
   for ( uint8_t sock = 0; sock < UIP_CONNS; sock++ )
     {
@@ -549,7 +561,7 @@ uint8_t
 UIPClient::_currentBlock(memhandle* block)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.println(F("UIPClient::_currentBlock(memhandle* block) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPClient::_currentBlock(memhandle* block) DEBUG_V3:Function started"));
   #endif
   for (uint8_t i = 1; i < UIP_SOCKET_NUMPACKETS; i++)
     {
@@ -563,19 +575,19 @@ void
 UIPClient::_eatBlock(memhandle* block)
 {
 #if ACTLOGLEVEL>=LOG_DEBUG_V3
-  LogObject.println(F("UIPClient::_eatBlock(memhandle* block) DEBUG_V3:Function started"));
+  LogObject.uart_send_strln(F("UIPClient::_eatBlock(memhandle* block) DEBUG_V3:Function started"));
 #endif
 #if ACTLOGLEVEL>=LOG_DEBUG
   memhandle* start = block;
-  LogObject.print(F("UIPClient::_eatBlock DEBUG:eatblock("));
-  LogObject.print(*block);
-  LogObject.print(F("): "));
+  LogObject.uart_send_str(F("UIPClient::_eatBlock DEBUG:eatblock("));
+  LogObject.uart_send_dec(*block);
+  LogObject.uart_send_str(F("): "));
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
-      LogObject.print(start[i]);
-      LogObject.print(F(" "));
+      LogObject.uart_send_dec(start[i]);
+      LogObject.uart_send_str(F(" "));
     }
-  LogObject.print(F("-> "));
+  LogObject.uart_send_str(F("-> "));
 #endif
   Enc28J60Network::freeBlock(block[0]);
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS-1; i++)
@@ -586,10 +598,10 @@ UIPClient::_eatBlock(memhandle* block)
 #if ACTLOGLEVEL>=LOG_DEBUG
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
-      LogObject.print(start[i]);
-      LogObject.print(F(" "));
+      LogObject.uart_send_dec(start[i]);
+      LogObject.uart_send_str(F(" "));
     }
-  LogObject.println();
+  LogObject.uart_send_strln(F(""));
 #endif
 }
 
@@ -597,7 +609,7 @@ void
 UIPClient::_flushBlocks(memhandle* block)
 {
 #if ACTLOGLEVEL>=LOG_DEBUG_V3
-  LogObject.println(F("UIPClient::_flushBlocks(memhandle* block) DEBUG_V3:Function started"));
+  LogObject.uart_send_strln(F("UIPClient::_flushBlocks(memhandle* block) DEBUG_V3:Function started"));
 #endif
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
@@ -608,36 +620,36 @@ UIPClient::_flushBlocks(memhandle* block)
 
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
 void
-UIPClient::_dumpAllData() {
+UIPClient::_dumpAllData(void) {
   for (uint8_t i=0; i < UIP_CONNS; i++)
     {
-      LogObject.print(F("UIPClient::_dumpAllData() DEBUG_V2:UIPClient::all_data["));
-      LogObject.print(i);
-      LogObject.print(F("], state:"));
-      LogObject.println(all_data[i].state, BIN);
-      LogObject.print(F("packets_in: "));
+      LogObject.uart_send_str(F("UIPClient::_dumpAllData() DEBUG_V2:UIPClient::all_data["));
+      LogObject.uart_send_dec(i);
+      LogObject.uart_send_str(F("], state:"));
+      LogObject.uart_send_binln(all_data[i].state);
+      LogObject.uart_send_str(F("packets_in: "));
       for (uint8_t j=0; j < UIP_SOCKET_NUMPACKETS; j++)
         {
-          LogObject.print(all_data[i].packets_in[j]);
-          LogObject.print(F(" "));
+          LogObject.uart_send_dec(all_data[i].packets_in[j]);
+          LogObject.uart_send_str(F(" "));
         }
-      LogObject.println();
+      LogObject.uart_send_strln(F(""));
       if (all_data[i].state & UIP_CLIENT_REMOTECLOSED)
         {
-          LogObject.print(F("state remote closed, local port: "));
-          LogObject.println(htons(((uip_userdata_closed_t *)(&all_data[i]))->lport));
+          LogObject.uart_send_str(F("state remote closed, local port: "));
+          LogObject.uart_send_decln(htons(((uip_userdata_closed_t *)(&all_data[i]))->lport));
         }
       else
         {
-          LogObject.print(F("packets_out: "));
+          LogObject.uart_send_str(F("packets_out: "));
           for (uint8_t j=0; j < UIP_SOCKET_NUMPACKETS; j++)
             {
-              LogObject.print(all_data[i].packets_out[j]);
-              LogObject.print(F(" "));
+              LogObject.uart_send_dec(all_data[i].packets_out[j]);
+              LogObject.uart_send_str(F(" "));
             }
-          LogObject.println();
-          LogObject.print(F("out_pos: "));
-          LogObject.println(all_data[i].out_pos);
+          LogObject.uart_send_strln(F(""));
+          LogObject.uart_send_str(F("out_pos: "));
+          LogObject.uart_send_decln(all_data[i].out_pos);
         }
     }
 }

@@ -157,22 +157,22 @@ private:
   uint8_t _dhcp_state;
   UIPUDP _dhcpUdpSocket;
   
-  int request_DHCP_lease();
-  void reset_DHCP_lease();
-  void presend_DHCP();
+  int request_DHCP_lease(void);
+  void reset_DHCP_lease(void);
+  void presend_DHCP(void);
   void send_DHCP_MESSAGE(uint8_t, uint16_t);
   void printByte(char *, uint8_t);
   
   uint8_t parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId);
 public:
-  IPAddress getLocalIp();
-  IPAddress getSubnetMask();
-  IPAddress getGatewayIp();
-  IPAddress getDhcpServerIp();
-  IPAddress getDnsServerIp();
+  IPAddress getLocalIp(void);
+  IPAddress getSubnetMask(void);
+  IPAddress getGatewayIp(void);
+  IPAddress getDhcpServerIp(void);
+  IPAddress getDnsServerIp(void);
   
   int beginWithDHCP(uint8_t *, unsigned long timeout = 60000, unsigned long responseTimeout = 4000);
-  int checkLease();
+  int checkLease(void);
 };
 
 #endif

@@ -21,9 +21,14 @@
 #define UIPETHERNET_H
 
 #include "ethernet_comp.h"
-#include <Arduino.h>
+#if defined(__MBED__)
+  #include <mbed.h>
+#endif
+#if defined(ARDUINO)
+  #include <Arduino.h>
+  #include "IPAddress.h"
+#endif
 #include "Dhcp.h"
-#include "IPAddress.h"
 #include "utility/Enc28J60Network.h"
 #include "UIPClient.h"
 #include "UIPServer.h"

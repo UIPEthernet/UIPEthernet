@@ -4,7 +4,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Dhcp.h"
-#include "Arduino.h"
+#if defined(ARDUINO)
+  #include <Arduino.h>
+#endif
+#if defined(__MBED__)
+  #include <mbed.h>
+  #include "mbed/millis.h"
+  #define delay(x) wait_ms(x)
+#endif
 #include "utility/logging.h"
 #include "utility/uip.h"
 
@@ -26,20 +33,25 @@ int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long 
     return request_DHCP_lease();
 }
 
-void DhcpClass::reset_DHCP_lease(){
+void DhcpClass::reset_DHCP_lease(void){
     // zero out _dhcpSubnetMask, _dhcpGatewayIp, _dhcpLocalIp, _dhcpDhcpServerIp, _dhcpDnsServerIp
     memset(_dhcpLocalIp, 0, 20);
 }
 
 //return:0 on error, 1 if request is sent and response is received
-int DhcpClass::request_DHCP_lease(){
+int DhcpClass::request_DHCP_lease(void){
     
     uint8_t messageType = 0;
   
     
   
     // Pick an initial transaction ID
-    _dhcpTransactionId = random(1UL, 2000UL);
+    #if defined(ARDUINO)
+       _dhcpTransactionId = random(1UL, 2000UL);
+    #endif
+    #if defined(__MBED__)
+       _dhcpTransactionId = (rand() % 2000UL) + 1;
+    #endif
     _dhcpInitialTransactionId = _dhcpTransactionId;
 
     _dhcpUdpSocket.stop();
@@ -127,7 +139,7 @@ int DhcpClass::request_DHCP_lease(){
     return result;
 }
 
-void DhcpClass::presend_DHCP()
+void DhcpClass::presend_DHCP(void)
 {
 }
 
@@ -266,7 +278,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
     }
     // start reading in the packet
     RIP_MSG_FIXED fixedMsg;
-    _dhcpUdpSocket.read((uint8_t*)&fixedMsg, sizeof(RIP_MSG_FIXED));
+    _dhcpUdpSocket.read((char*)&fixedMsg, sizeof(RIP_MSG_FIXED));
   
     if(fixedMsg.op == DHCP_BOOTREPLY && _dhcpUdpSocket.remotePort() == DHCP_SERVER_PORT)
     {
@@ -305,12 +317,12 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                 
                 case subnetMask :
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read(_dhcpSubnetMask, 4);
+                    _dhcpUdpSocket.read((char*)_dhcpSubnetMask, 4);
                     break;
                 
                 case routersOnSubnet :
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read(_dhcpGatewayIp, 4);
+                    _dhcpUdpSocket.read((char*)_dhcpGatewayIp, 4);
                     for (int i = 0; i < opt_len-4; i++)
                     {
                         _dhcpUdpSocket.read();
@@ -319,7 +331,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                 
                 case dns :
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read(_dhcpDnsServerIp, 4);
+                    _dhcpUdpSocket.read((char*)_dhcpDnsServerIp, 4);
                     for (int i = 0; i < opt_len-4; i++)
                     {
                         _dhcpUdpSocket.read();
@@ -331,7 +343,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                     if( *((uint32_t*)_dhcpDhcpServerIp) == 0 || 
                         IPAddress(_dhcpDhcpServerIp) == _dhcpUdpSocket.remoteIP() )
                     {
-                        _dhcpUdpSocket.read(_dhcpDhcpServerIp, sizeof(_dhcpDhcpServerIp));
+                        _dhcpUdpSocket.read((char*)_dhcpDhcpServerIp, sizeof(_dhcpDhcpServerIp));
                     }
                     else
                     {
@@ -345,19 +357,19 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
 
                 case dhcpT1value : 
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read((uint8_t*)&_dhcpT1, sizeof(_dhcpT1));
+                    _dhcpUdpSocket.read((char*)&_dhcpT1, sizeof(_dhcpT1));
                     _dhcpT1 = ntohl(_dhcpT1);
                     break;
 
                 case dhcpT2value : 
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read((uint8_t*)&_dhcpT2, sizeof(_dhcpT2));
+                    _dhcpUdpSocket.read((char*)&_dhcpT2, sizeof(_dhcpT2));
                     _dhcpT2 = ntohl(_dhcpT2);
                     break;
 
                 case dhcpIPaddrLeaseTime :
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read((uint8_t*)&_dhcpLeaseTime, sizeof(_dhcpLeaseTime));
+                    _dhcpUdpSocket.read((char*)&_dhcpLeaseTime, sizeof(_dhcpLeaseTime));
                     _dhcpLeaseTime = ntohl(_dhcpLeaseTime);
                     _renewInSec = _dhcpLeaseTime;
                     break;
@@ -389,7 +401,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
     3/DHCP_CHECK_REBIND_FAIL: rebind fail
     4/DHCP_CHECK_REBIND_OK: rebind success
 */
-int DhcpClass::checkLease(){
+int DhcpClass::checkLease(void){
     //this uses a signed / unsigned trick to deal with millis overflow
     unsigned long now = millis();
     signed long snow = (long)now;
@@ -442,27 +454,27 @@ int DhcpClass::checkLease(){
     return rc;
 }
 
-IPAddress DhcpClass::getLocalIp()
+IPAddress DhcpClass::getLocalIp(void)
 {
     return IPAddress(_dhcpLocalIp);
 }
 
-IPAddress DhcpClass::getSubnetMask()
+IPAddress DhcpClass::getSubnetMask(void)
 {
     return IPAddress(_dhcpSubnetMask);
 }
 
-IPAddress DhcpClass::getGatewayIp()
+IPAddress DhcpClass::getGatewayIp(void)
 {
     return IPAddress(_dhcpGatewayIp);
 }
 
-IPAddress DhcpClass::getDhcpServerIp()
+IPAddress DhcpClass::getDhcpServerIp(void)
 {
     return IPAddress(_dhcpDhcpServerIp);
 }
 
-IPAddress DhcpClass::getDnsServerIp()
+IPAddress DhcpClass::getDnsServerIp(void)
 {
     return IPAddress(_dhcpDnsServerIp);
 }

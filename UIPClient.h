@@ -21,8 +21,13 @@
 #define UIPCLIENT_H
 
 #include "ethernet_comp.h"
-#include "Print.h"
-#include "Client.h"
+#if defined(ARDUINO)
+   #include "Print.h"
+   #include "Client.h"
+#endif
+#if defined(__MBED__)
+   #include "mbed/Client.h"
+#endif
 #include "utility/mempool.h"
 #include "utility/logging.h"
 
@@ -81,7 +86,9 @@ public:
   int peek();
   void flush();
 
-  using Print::write;
+  #if defined(ARDUINO)
+     using Print::write;
+  #endif
 
 private:
   UIPClient(struct uip_conn *_conn);
@@ -100,7 +107,7 @@ private:
   static void _flushBlocks(memhandle* blocks);
 
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
-  static void _dumpAllData();
+  static void _dumpAllData(void);
 #endif
 
   friend class UIPEthernetClass;
