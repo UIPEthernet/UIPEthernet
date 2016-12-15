@@ -24,7 +24,9 @@ unsigned long next;
 
 void setup() {
 
-  LogObject.begin(9600);
+  #if ACTLOGLEVEL>LOG_NONE
+    LogObject.begin(9600);
+  #endif
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
 
@@ -43,8 +45,10 @@ void loop() {
       do
         {
           success = udp.beginPacket(IPAddress(192,168,0,1),5000);
-          LogObject.print(F("beginPacket: "));
-          LogObject.println(success ? "success" : "failed");
+          #if ACTLOGLEVEL>=LOG_INFO
+            LogObject.uart_send_str(F("beginPacket: "));
+            LogObject.uart_send_strln(success ? "success" : "failed");
+          #endif
           //beginPacket fails if remote ethaddr is unknown. In this case an
           //arp-request is send out first and beginPacket succeeds as soon
           //the arp-response is received.
@@ -55,13 +59,17 @@ void loop() {
 
       success = udp.write("hello world from arduino");
 
-      LogObject.print(F("bytes written: "));
-      LogObject.println(success);
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.uart_send_str(F("bytes written: "));
+        LogObject.uart_send_decln(success);
+      #endif
 
       success = udp.endPacket();
 
-      LogObject.print(F("endPacket: "));
-      LogObject.println(success ? "success" : "failed");
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.uart_send_str(F("endPacket: "));
+        LogObject.uart_send_strln(success ? "success" : "failed");
+      #endif
 
       do
         {
@@ -72,17 +80,23 @@ void loop() {
       if (!success )
         goto stop;
 
-      LogObject.print(F("received: '"));
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.uart_send_str(F("received: '"));
+      #endif
       do
         {
           int c = udp.read();
-          LogObject.write(c);
+          #if ACTLOGLEVEL>=LOG_INFO
+            LogObject.write(c);
+          #endif
           len++;
         }
       while ((success = udp.available())>0);
-      LogObject.print(F("', "));
-      LogObject.print(len);
-      LogObject.println(F(" bytes"));
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.uart_send_str(F("', "));
+        LogObject.uart_send_dec(len);
+        LogObject.uart_send_strln(F(" bytes"));
+      #endif
 
       //finish reading this packet:
       udp.flush();
