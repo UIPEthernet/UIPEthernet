@@ -40,7 +40,7 @@ void loop() {
   int success;
   int len = 0;
 
-  if (((signed long)(millis()-next))>0)
+  if (millis()>next)
     {
       do
         {
@@ -52,56 +52,55 @@ void loop() {
           //beginPacket fails if remote ethaddr is unknown. In this case an
           //arp-request is send out first and beginPacket succeeds as soon
           //the arp-response is received.
+          #if defined(ESP8266)
+            wdt_reset();
+          #endif
         }
-      while (!success && ((signed long)(millis()-next))<0);
-      if (!success )
-        goto stop;
-
-      success = udp.write("hello world from arduino");
-
-      #if ACTLOGLEVEL>=LOG_INFO
-        LogObject.uart_send_str(F("bytes written: "));
-        LogObject.uart_send_decln(success);
-      #endif
-
-      success = udp.endPacket();
-
-      #if ACTLOGLEVEL>=LOG_INFO
-        LogObject.uart_send_str(F("endPacket: "));
-        LogObject.uart_send_strln(success ? "success" : "failed");
-      #endif
-
-      do
+      while (!success && (millis()<next));
+      if (success)
         {
+        success = udp.write("hello world from arduino");
+        #if ACTLOGLEVEL>=LOG_INFO
+          LogObject.uart_send_str(F("bytes written: "));
+          LogObject.uart_send_decln(success);
+        #endif
+        success = udp.endPacket();
+        #if ACTLOGLEVEL>=LOG_INFO
+          LogObject.uart_send_str(F("endPacket: "));
+          LogObject.uart_send_strln(success ? "success" : "failed");
+        #endif
+        do
+          {
           //check for new udp-packet:
           success = udp.parsePacket();
-        }
-      while (!success && ((signed long)(millis()-next))<0);
-      if (!success )
-        goto stop;
-
-      #if ACTLOGLEVEL>=LOG_INFO
-        LogObject.uart_send_str(F("received: '"));
-      #endif
-      do
-        {
-          int c = udp.read();
-          #if ACTLOGLEVEL>=LOG_INFO
-            LogObject.write(c);
+          #if defined(ESP8266)
+            wdt_reset();
           #endif
-          len++;
+          }
+        while (!success && (millis()<next));
+        if (success)
+          {
+          #if ACTLOGLEVEL>=LOG_INFO
+            LogObject.uart_send_str(F("received: '"));
+          #endif
+          do
+            {
+            int c = udp.read();
+            #if ACTLOGLEVEL>=LOG_INFO
+              LogObject.write(c);
+            #endif
+            len++;
+            }
+          while ((success = udp.available())>0);
+          #if ACTLOGLEVEL>=LOG_INFO
+            LogObject.uart_send_str(F("', "));
+            LogObject.uart_send_dec(len);
+            LogObject.uart_send_strln(F(" bytes"));
+          #endif
+          //finish reading this packet:
+          udp.flush();
+          }
         }
-      while ((success = udp.available())>0);
-      #if ACTLOGLEVEL>=LOG_INFO
-        LogObject.uart_send_str(F("', "));
-        LogObject.uart_send_dec(len);
-        LogObject.uart_send_strln(F(" bytes"));
-      #endif
-
-      //finish reading this packet:
-      udp.flush();
-
-      stop:
       udp.stop();
       next = millis()+5000;
     }
