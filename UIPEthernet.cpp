@@ -297,7 +297,6 @@ if (Enc28J60Network::geterevid()==0)
         }
       else
         {
-        u8_t conntimer;
         if (uip_conn!=NULL)
            {
            if (((uip_userdata_t*)uip_conn->appstate)!=NULL)
