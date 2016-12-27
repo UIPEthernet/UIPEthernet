@@ -63,7 +63,7 @@ void loop() {
           client.println(F("DATA from Client"));
           while(client.available()==0)
             {
-              if (next - millis() < 0)
+              if (next<millis())
                 goto close;
             }
           int size;
