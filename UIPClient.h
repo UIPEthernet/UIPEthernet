@@ -70,21 +70,21 @@ class UIPClient : public Client {
 
 public:
   UIPClient();
-  int connect(IPAddress ip, uint16_t port);
-  int connect(const char *host, uint16_t port);
-  int read(uint8_t *buf, size_t size);
-  void stop();
-  uint8_t connected();
-  operator bool();
+  virtual int connect(IPAddress ip, uint16_t port);
+  virtual int connect(const char *host, uint16_t port);
+  virtual int read(uint8_t *buf, size_t size);
+  virtual void stop();
+  virtual uint8_t connected();
+  virtual operator bool();
   virtual bool operator==(const EthernetClient&);
   virtual bool operator!=(const EthernetClient& rhs) { return !this->operator==(rhs); };
 
-  size_t write(uint8_t);
-  size_t write(const uint8_t *buf, size_t size);
-  int available();
-  int read();
-  int peek();
-  void flush();
+  virtual size_t write(uint8_t);
+  virtual size_t write(const uint8_t *buf, size_t size);
+  virtual int available();
+  virtual int read();
+  virtual int peek();
+  virtual void flush();
 
   #if defined(ARDUINO)
      using Print::write;
