@@ -61,12 +61,13 @@ void loop() {
             LogObject.uart_send_strln(F("Client connected"));
           #endif
           client.println(F("DATA from Client"));
-          while(client.available()==0)
-            {
-              if (next<millis())
-                goto close;
-            }
           int size;
+          while ((client.available()==0) && (millis()<next))
+            {
+            #if defined(ESP8266)
+              wdt_reset();
+            #endif
+            }
           while((size = client.available()) > 0)
             {
               uint8_t* msg = (uint8_t*)malloc(size);
@@ -76,7 +77,6 @@ void loop() {
               #endif
               free(msg);
             }
-close:
           //disconnect client
           #if ACTLOGLEVEL>=LOG_INFO
             LogObject.uart_send_strln(F("Client disconnect"));
