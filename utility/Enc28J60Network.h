@@ -74,7 +74,7 @@
       #endif
    #endif
    #if defined(ENC28J60_CONTROL_CS)
-      #pragma message "Not defined ENC28J60_CONTROL_CS. Use borad default SS pin setting. You can configure in 'utility/Enc28J60Network.h'."
+      #warning "Not defined ENC28J60_CONTROL_CS. Use borad default SS pin setting. You can configure in 'utility/Enc28J60Network.h'."
    #endif
 #endif
 #if !defined(ENC28J60_CONTROL_CS)
