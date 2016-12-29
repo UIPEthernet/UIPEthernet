@@ -2,8 +2,6 @@
   IPAddress.cpp - Base class that provides IPAddress
   Copyright (c) 2011 Adrian McEwen.  All right reserved.
 
-  Modified (ported to mbed) by Zoltan Hudak <hudakz@inbox.com>
-
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -18,95 +16,107 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include <mbed.h>
-#include "mbed/IPAddress.h"
 
-/**
- * @brief
- * @note
- * @param
- * @retval
- */
-IPAddress::IPAddress(void) {
-    memset(_address, 0, sizeof(_address));
+#if defined(ARDUINO)
+  #include <Arduino.h>
+#endif
+#if defined(__MBED__)
+  #include <mbed.h>
+  #include "mbed/Print.h"
+#endif
+
+#include <IPAddress.h>
+
+IPAddress::IPAddress()
+{
+    _address.dword = 0;
 }
 
-/**
- * @brief
- * @note
- * @param
- * @retval
- */
-IPAddress::IPAddress(uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet) {
-    _address[0] = first_octet;
-    _address[1] = second_octet;
-    _address[2] = third_octet;
-    _address[3] = fourth_octet;
+IPAddress::IPAddress(uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet)
+{
+    _address.bytes[0] = first_octet;
+    _address.bytes[1] = second_octet;
+    _address.bytes[2] = third_octet;
+    _address.bytes[3] = fourth_octet;
 }
 
-/**
- * @brief
- * @note
- * @param
- * @retval
- */
-IPAddress::IPAddress(uint32_t address) {
-    memcpy(_address, &address, sizeof(_address));
+IPAddress::IPAddress(uint32_t address)
+{
+    _address.dword = address;
 }
 
-/**
- * @brief
- * @note
- * @param
- * @retval
- */
-IPAddress::IPAddress(const uint8_t* address) {
-    memcpy(_address, address, sizeof(_address));
+IPAddress::IPAddress(const uint8_t *address)
+{
+    memcpy(_address.bytes, address, sizeof(_address.bytes));
 }
 
-/**
- * @brief
- * @note
- * @param
- * @retval
- */
-IPAddress &IPAddress::operator=(const uint8_t* address) {
-    memcpy(_address, address, sizeof(_address));
+bool IPAddress::fromString(const char *address)
+{
+    // TODO: add support for "a", "a.b", "a.b.c" formats
+
+    uint16_t acc = 0; // Accumulator
+    uint8_t dots = 0;
+
+    while (*address)
+    {
+        char c = *address++;
+        if (c >= '0' && c <= '9')
+        {
+            acc = acc * 10 + (c - '0');
+            if (acc > 255) {
+                // Value out of [0..255] range
+                return false;
+            }
+        }
+        else if (c == '.')
+        {
+            if (dots == 3) {
+                // Too much dots (there must be 3 dots)
+                return false;
+            }
+            _address.bytes[dots++] = acc;
+            acc = 0;
+        }
+        else
+        {
+            // Invalid char
+            return false;
+        }
+    }
+
+    if (dots != 3) {
+        // Too few dots (there must be 3 dots)
+        return false;
+    }
+    _address.bytes[3] = acc;
+    return true;
+}
+
+IPAddress& IPAddress::operator=(const uint8_t *address)
+{
+    memcpy(_address.bytes, address, sizeof(_address.bytes));
     return *this;
 }
 
-/**
- * @brief
- * @note
- * @param
- * @retval
- */
-IPAddress &IPAddress::operator=(uint32_t address) {
-    memcpy(_address, (const uint8_t*) &address, sizeof(_address));
+IPAddress& IPAddress::operator=(uint32_t address)
+{
+    _address.dword = address;
     return *this;
 }
 
-/**
- * @brief
- * @note
- * @param
- * @retval
- */
 bool IPAddress::operator==(const uint8_t* addr) const
 {
-    return memcmp(addr, _address, sizeof(_address)) == 0;
+    return memcmp(addr, _address.bytes, sizeof(_address.bytes)) == 0;
 }
 
-//size_t IPAddress::printTo(Print& p) const
-//{
-//    size_t n = 0;
-//    for (int i =0; i < 3; i++)
-//    {
-//        n += p.print(_address[i], DEC);
-//        n += p.print('.');
-//    }
-//    n += p.print(_address[3], DEC);
-//    return n;
-//}
-//
-
+size_t IPAddress::printTo(Print& p) const
+{
+    size_t n = 0;
+    for (int i =0; i < 3; i++)
+    {
+        n += p.print(_address.bytes[i], DEC);
+        n += p.print('.');
+    }
+    n += p.print(_address.bytes[3], DEC);
+    return n;
+}
