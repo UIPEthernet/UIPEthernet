@@ -16,14 +16,26 @@
  * Copyright (C) 2013 by Norbert Truchsess (norbert.truchsess@t-online.de)
  */
 
+#if defined(__MBED__)
+  #include <mbed.h>
+  #include "mbed/millis.h"
+  #define delay(x) wait_ms(x)
+  #define PROGMEM
+  #include "mbed/Print.h"
+#endif
+
 #include <UIPEthernet.h>
 #include "utility/logging.h"
 
 EthernetUDP udp;
 unsigned long next;
 
+#if defined(ARDUINO)
 void setup() {
-
+#endif  
+#if defined(__MBED__)
+int main() {
+#endif
   #if ACTLOGLEVEL>LOG_NONE
     LogObject.begin(9600);
   #endif
@@ -33,10 +45,15 @@ void setup() {
   Ethernet.begin(mac,IPAddress(192,168,0,6));
 
   next = millis()+5000;
+#if defined(ARDUINO)
 }
 
 void loop() {
+#endif  
 
+#if defined(__MBED__)
+while(true) {
+#endif
   int success;
   int len = 0;
 
@@ -105,3 +122,6 @@ void loop() {
       next = millis()+5000;
     }
 }
+#if defined(__MBED__)
+}
+#endif
