@@ -18,13 +18,25 @@
  * Adaption to Enc28J60 by Norbert Truchsess <norbert.truchsess@t-online.de>
  */
 
+#if defined(__MBED__)
+  #include <mbed.h>
+  #include "mbed/millis.h"
+  #define delay(x) wait_ms(x)
+  #define PROGMEM
+  #include "mbed/Print.h"
+#endif
+
 #include <UIPEthernet.h>
 #include "utility/logging.h"
 
 EthernetServer server = EthernetServer(1000);
 
-void setup()
-{
+#if defined(ARDUINO)
+void setup() {
+#endif  
+#if defined(__MBED__)
+int main() {
+#endif
   #if ACTLOGLEVEL>LOG_NONE
     LogObject.begin(9600);
   #endif
@@ -35,10 +47,15 @@ void setup()
   Ethernet.begin(mac,myIP);
 
   server.begin();
+#if defined(ARDUINO)
 }
 
-void loop()
-{
+void loop() {
+#endif  
+
+#if defined(__MBED__)
+while(true) {
+#endif
   size_t size;
 
   if (EthernetClient client = server.available())
@@ -58,3 +75,6 @@ void loop()
       client.stop();
     }
 }
+#if defined(__MBED__)
+}
+#endif
