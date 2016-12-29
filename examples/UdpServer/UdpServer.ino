@@ -86,9 +86,14 @@ while(true) {
       {
       #if ACTLOGLEVEL>=LOG_INFO
         LogObject.uart_send_str(F("remote ip: "));
-        LogObject.println(udp.remoteIP());
+        #if defined(ARDUINO)
+          LogObject.println(udp.remoteIP());
+        #endif
+        #if defined(__MBED__)
+          LogObject.printf("%d.%d.%d.%d",udp.remoteIP()[0],udp.remoteIP()[1],udp.remoteIP()[2],udp.remoteIP()[3]);
+        #endif
         LogObject.uart_send_str(F("remote port: "));
-        LogObject.println(udp.remotePort());
+        LogObject.uart_send_decln(udp.remotePort());
       #endif
         //send new packet back to ip/port of client. This also
         //configures the current connection to ignore packets from
