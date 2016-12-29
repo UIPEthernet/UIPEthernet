@@ -16,14 +16,26 @@
  * Copyright (C) 2013 by Norbert Truchsess <norbert.truchsess@t-online.de>
  */
 
+#if defined(__MBED__)
+  #include <mbed.h>
+  #include "mbed/millis.h"
+  #define delay(x) wait_ms(x)
+  #define PROGMEM
+  #include "mbed/Print.h"
+#endif
+
 #include <UIPEthernet.h>
 #include "utility/logging.h"
 
 EthernetClient client;
 signed long next;
 
+#if defined(ARDUINO)
 void setup() {
-
+#endif  
+#if defined(__MBED__)
+int main() {
+#endif
   #if ACTLOGLEVEL>LOG_NONE
     LogObject.begin(9600);
   #endif
@@ -43,10 +55,15 @@ void setup() {
   #endif
 
   next = 0;
+#if defined(ARDUINO)
 }
 
 void loop() {
+#endif  
 
+#if defined(__MBED__)
+while(true) {
+#endif
   if (((signed long)(millis() - next)) > 0)
     {
       next = millis() + 5000;
@@ -89,3 +106,6 @@ void loop() {
         #endif
     }
 }
+#if defined(__MBED__)
+}
+#endif
