@@ -107,9 +107,14 @@ while(true) {
           #endif
           do
             {
-            int c = udp.read();
+            char c = udp.read();
             #if ACTLOGLEVEL>=LOG_INFO
-              LogObject.write(c);
+              #if defined(ARDUINO)
+                LogObject.write(c);
+              #endif
+              #if defined(__MBED__)
+                LogObject.printf("%c",&c);
+              #endif
             #endif
             len++;
             }
