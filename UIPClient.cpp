@@ -194,7 +194,7 @@ UIPClient::write(const uint8_t *buf, size_t size)
   return _write(data, buf, size);
 }
 
-size_t
+int16_t
 UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3

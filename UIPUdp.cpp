@@ -121,7 +121,12 @@ UIPUDP::beginPacket(IPAddress ip, uint16_t port)
         }
 #if ACTLOGLEVEL>=LOG_DEBUG
           LogObject.uart_send_str(F("rip: "));
-          LogObject.uart_send_dec(ip);
+          #if defined(ARDUINO)
+            LogObject.print(ip);
+          #endif
+          #if defined(__MBED__)
+            LogObject.printf("%d.%d.%d.%d",ip[0],ip[1],ip[2],ip[3]);
+          #endif
           LogObject.uart_send_str(F(", port: "));
           LogObject.uart_send_decln(port);
 #endif

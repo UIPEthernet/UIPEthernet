@@ -21,13 +21,15 @@
 #define UIPUDP_H
  
 #include "ethernet_comp.h"
-#if defined(__MBED__)
-  #include <mbed.h>
-  #include "mbed/Udp.h"
-#endif
 #if defined(ARDUINO)
   #include <Arduino.h>
+  #include "Print.h"
   #include <Udp.h>
+#endif
+#if defined(__MBED__)
+  #include <mbed.h>
+  #include "mbed/Print.h"
+  #include "mbed/Udp.h"
 #endif
 #include "utility/mempool.h"
 extern "C" {
@@ -46,9 +48,12 @@ typedef struct {
   bool send;
 } uip_udp_userdata_t;
  
-class UIPUDP : public UDP
-{
- 
+#if defined(ARDUINO)
+  class UIPUDP : public UDP {
+#endif
+#if defined(__MBED__)
+  class UIPUDP : public Print, public UDP {
+#endif
 private:
   struct uip_udp_conn *_uip_udp_conn;
  
@@ -74,10 +79,9 @@ public:
   virtual size_t    write(uint8_t);
   // Write size bytes from buffer into the packet
   virtual size_t    write(const uint8_t *buffer, size_t size);
- 
-  #if defined(ARDUINO)
-      using Print::write;
-  #endif
+
+  using Print::write;
+
   // Start processing the next available incoming packet
   // Returns the size of the packet in bytes, or 0 if no packets are available
   virtual int       parsePacket(void);

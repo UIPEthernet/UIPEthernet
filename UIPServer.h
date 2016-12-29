@@ -21,24 +21,29 @@
 
 #include "ethernet_comp.h"
 #if defined(ARDUINO)
-   #include "Server.h"
+  #include "Print.h"
+  #include "Server.h"
 #endif
 #if defined(__MBED__)
-   #include "mbed/Server.h"
+  #include "mbed/Print.h"
+  #include "mbed/Server.h"
 #endif
 #include "UIPClient.h"
 
-class UIPServer : public Server {
-
+#if defined(ARDUINO)
+  class UIPServer : public Server {
+#endif
+#if defined(__MBED__)
+  class UIPServer : public Print, public Server {
+#endif
 public:
   UIPServer(uint16_t);
   UIPClient available();
   virtual void begin();
-  size_t write(uint8_t);
-  size_t write(const uint8_t *buf, size_t size);
-  #if defined(ARDUINO)
-     using Print::write;
-  #endif
+  virtual size_t write(uint8_t);
+  virtual size_t write(const uint8_t *buf, size_t size);
+
+  using Print::write;
 
 private:
   uint16_t _port;

@@ -258,7 +258,7 @@ uint16_t DNSClient::BuildRequest(const char* aName)
 }
 
 
-uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
+int16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
 {
     uint32_t startTime = millis();
 

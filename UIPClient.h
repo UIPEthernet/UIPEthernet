@@ -22,11 +22,12 @@
 
 #include "ethernet_comp.h"
 #if defined(ARDUINO)
-   #include "Print.h"
-   #include "Client.h"
+  #include "Print.h"
+  #include "Client.h"
 #endif
 #if defined(__MBED__)
-   #include "mbed/Client.h"
+  #include "mbed/Print.h"
+  #include "mbed/Client.h"
 #endif
 #include "utility/mempool.h"
 #include "utility/logging.h"
@@ -66,8 +67,12 @@ typedef struct {
 #endif
 } uip_userdata_t;
 
-class UIPClient : public Client {
-
+#if defined(ARDUINO)
+  class UIPClient : public Client {
+#endif
+#if defined(__MBED__)
+  class UIPClient : public Print, public Client {
+#endif
 public:
   UIPClient();
   virtual int connect(IPAddress ip, uint16_t port);
@@ -86,9 +91,7 @@ public:
   virtual int peek();
   virtual void flush();
 
-  #if defined(ARDUINO)
-     using Print::write;
-  #endif
+  using Print::write;
 
 private:
   UIPClient(struct uip_conn *_conn);
@@ -99,7 +102,7 @@ private:
   static uip_userdata_t all_data[UIP_CONNS];
   static uip_userdata_t* _allocateData();
 
-  static size_t _write(uip_userdata_t *,const uint8_t *buf, size_t size);
+  static int16_t _write(uip_userdata_t *,const uint8_t *buf, size_t size);
   static int _available(uip_userdata_t *);
 
   static uint8_t _currentBlock(memhandle* blocks);
