@@ -67,10 +67,16 @@ while(true) {
     {
       while((size = client.available()) > 0)
         {
-          uint8_t* msg = (uint8_t*)malloc(size);
+          uint8_t* msg = (uint8_t*)malloc(size+1);
+          memset(msg, 0, size+1);
           size = client.read(msg,size);
           #if ACTLOGLEVEL>=LOG_INFO
-            LogObject.write(msg,size);
+            #if defined(ARDUINO)
+              LogObject.write(msg,size);
+            #endif
+            #if defined(__MBED__)
+              LogObject.uart_send_str(msg);
+            #endif
           #endif
           free(msg);
         }
