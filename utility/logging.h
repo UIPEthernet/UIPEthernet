@@ -39,6 +39,7 @@
    #endif
    #if defined(__MBED__)
      #include <mbed.h>
+     #include "mbed/Print.h"
      extern Serial LogObject;
      #define uart_send_str(x) printf("%s",x)
      #define uart_send_strln(x) printf("%s\n",x)
