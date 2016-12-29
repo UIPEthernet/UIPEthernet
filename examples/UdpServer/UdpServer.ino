@@ -14,13 +14,25 @@
  * Copyright (C) 2013 by Norbert Truchsess (norbert.truchsess@t-online.de)
  */
 
+#if defined(__MBED__)
+  #include <mbed.h>
+  #include "mbed/millis.h"
+  #define delay(x) wait_ms(x)
+  #define PROGMEM
+  #include "mbed/Print.h"
+#endif
+
 #include <UIPEthernet.h>
 #include "utility/logging.h"
 
 EthernetUDP udp;
 
+#if defined(ARDUINO)
 void setup() {
-
+#endif  
+#if defined(__MBED__)
+int main() {
+#endif
   #if ACTLOGLEVEL>LOG_NONE
     LogObject.begin(9600);
   #endif
@@ -35,11 +47,15 @@ void setup() {
     LogObject.uart_send_str(F("initialize: "));
     LogObject.uart_send_strln(success ? "success" : "failed");
   #endif
-
+#if defined(ARDUINO)
 }
 
 void loop() {
+#endif  
 
+#if defined(__MBED__)
+while(true) {
+#endif
   //check for new udp-packet:
   int size = udp.parsePacket();
   if (size > 0) {
@@ -105,3 +121,6 @@ void loop() {
     #endif
   }
 }
+#if defined(__MBED__)
+}
+#endif
