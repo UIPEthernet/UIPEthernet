@@ -41,7 +41,12 @@ void setup() {
 int main() {
 #endif
   #if ACTLOGLEVEL>LOG_NONE
-    LogObject.begin(9600);
+    #if defined(ARDUINO)
+      LogObject.begin(9600);
+    #endif
+    #if defined(__MBED__)
+      Serial LogObject(SERIAL_TX,SERIAL_RX);
+    #endif
   #endif
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
