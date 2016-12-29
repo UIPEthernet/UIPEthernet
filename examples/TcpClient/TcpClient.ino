@@ -50,13 +50,33 @@ int main() {
 
   #if ACTLOGLEVEL>=LOG_INFO
     LogObject.uart_send_str(F("localIP: "));
-    LogObject.println(Ethernet.localIP());
+    #if defined(ARDUINO)
+      LogObject.println(Ethernet.localIP());
+    #endif
+    #if defined(__MBED__)
+      LogObject.printf("%d.%d.%d.%d",Ethernet.localIP()[0],Ethernet.localIP()[1],Ethernet.localIP()[2],Ethernet.localIP()[3]);
+    #endif
     LogObject.uart_send_str(F("subnetMask: "));
-    LogObject.println(Ethernet.subnetMask());
+    #if defined(ARDUINO)
+      LogObject.println(Ethernet.subnetMask());
+    #endif
+    #if defined(__MBED__)
+      LogObject.printf("%d.%d.%d.%d",Ethernet.subnetMask()[0],Ethernet.subnetMask()[1],Ethernet.subnetMask()[2],Ethernet.subnetMask()[3]);
+    #endif
     LogObject.uart_send_str(F("gatewayIP: "));
-    LogObject.println(Ethernet.gatewayIP());
+    #if defined(ARDUINO)
+      LogObject.println(Ethernet.gatewayIP());
+    #endif
+    #if defined(__MBED__)
+      LogObject.printf("%d.%d.%d.%d",Ethernet.gatewayIP()[0],Ethernet.gatewayIP()[1],Ethernet.gatewayIP()[2],Ethernet.gatewayIP()[3]);
+    #endif
     LogObject.uart_send_str(F("dnsServerIP: "));
-    LogObject.println(Ethernet.dnsServerIP());
+    #if defined(ARDUINO)
+      LogObject.println(Ethernet.dnsServerIP());
+    #endif
+    #if defined(__MBED__)
+      LogObject.printf("%d.%d.%d.%d",Ethernet.dnsServerIP()[0],Ethernet.dnsServerIP()[1],Ethernet.dnsServerIP()[2],Ethernet.dnsServerIP()[3]);
+    #endif
   #endif
 
   next = 0;
@@ -92,10 +112,16 @@ while(true) {
             }
           while((size = client.available()) > 0)
             {
-              uint8_t* msg = (uint8_t*)malloc(size);
+              uint8_t* msg = (uint8_t*)malloc(size+1);
+              memset(msg, 0, size+1);
               size = client.read(msg,size);
               #if ACTLOGLEVEL>=LOG_INFO
-                LogObject.write(msg,size);
+                #if defined(ARDUINO)
+                  LogObject.write(msg,size);
+                #endif
+                #if defined(__MBED__)
+                  LogObject.uart_send_str(msg);
+                #endif
               #endif
               free(msg);
             }
