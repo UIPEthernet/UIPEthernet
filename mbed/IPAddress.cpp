@@ -19,13 +19,13 @@
 
 #if defined(ARDUINO)
   #include <Arduino.h>
+  #include <IPAddress.h>
 #endif
 #if defined(__MBED__)
   #include <mbed.h>
   #include "mbed/Print.h"
+  #include "mbed/IPAddress.h"
 #endif
-
-#include <IPAddress.h>
 
 IPAddress::IPAddress()
 {
