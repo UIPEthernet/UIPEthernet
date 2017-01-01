@@ -1,5 +1,5 @@
 /*
- * UIPEthernet EchoServer example.
+ * UIPEthernet TCPServer example.
  *
  * UIPEthernet is a TCP/IP stack that can be used with a enc28j60 based
  * Ethernet-shield.
@@ -18,6 +18,14 @@
  * Adaption to Enc28J60 by Norbert Truchsess <norbert.truchsess@t-online.de>
  */
 
+#define MACADDRESS 0x00,0x01,0x02,0x03,0x04,0x05
+#define MYIPADDR 192,168,1,6
+#define MYIPMASK 255,255,255,0
+#define MYDNS 192,168,1,1
+#define MYGW 192,168,1,1
+#define LISTENPORT 1000
+#define UARTBAUD 115200
+
 #if defined(__MBED__)
   #include <mbed.h>
   #include "mbed/millis.h"
@@ -29,7 +37,7 @@
 #include <UIPEthernet.h>
 #include "utility/logging.h"
 
-EthernetServer server = EthernetServer(1000);
+EthernetServer server = EthernetServer(LISTENPORT);
 
 #if defined(ARDUINO)
 void setup() {
@@ -39,17 +47,22 @@ int main() {
 #endif
   #if ACTLOGLEVEL>LOG_NONE
     #if defined(ARDUINO)
-      LogObject.begin(9600);
+      LogObject.begin(UARTBAUD);
     #endif
     #if defined(__MBED__)
       Serial LogObject(SERIAL_TX,SERIAL_RX);
+      LogObject.baud(UARTBAUD);
     #endif
   #endif
 
-  uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-  IPAddress myIP(192,168,0,6);
+  uint8_t mac[6] = {MACADDRESS};
+  uint8_t myIP[4] = {MYIPADDR};
+  uint8_t myMASK[4] = {MYIPMASK};
+  uint8_t myDNS[4] = {MYDNS};
+  uint8_t myGW[4] = {MYGW};
 
-  Ethernet.begin(mac,myIP);
+//  Ethernet.begin(mac,myIP);
+  Ethernet.begin(mac,myIP,myDNS,myGW,myMASK);
 
   server.begin();
 #if defined(ARDUINO)
@@ -65,6 +78,9 @@ while(true) {
 
   if (EthernetClient client = server.available())
     {
+      #if ACTLOGLEVEL>=LOG_INFO
+        LogObject.uart_send_str(F("DATA from Client:'"));
+      #endif
       while((size = client.available()) > 0)
         {
           uint8_t* msg = (uint8_t*)malloc(size+1);
@@ -81,7 +97,7 @@ while(true) {
           free(msg);
         }
       #if ACTLOGLEVEL>=LOG_INFO
-        LogObject.uart_send_strln(F("DATA from Server!"));
+        LogObject.uart_send_strln(F("'"));
       #endif
       client.stop();
     }
