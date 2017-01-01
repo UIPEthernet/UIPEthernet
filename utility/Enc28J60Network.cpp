@@ -313,7 +313,7 @@ Enc28J60Network::receivePacket(void)
       }
   #endif
   uint8_t epktcnt=readReg(EPKTCNT);
-  if ((erevid!=0) && (epktcnt!=0) && (epktcnt==readReg(EPKTCNT)))
+  if ((erevid!=0) && (epktcnt!=0))
     {
       uint16_t readPtr = nextPacketPtr+6 > RXSTOP_INIT ? nextPacketPtr+6-RXSTOP_INIT+RXSTART_INIT : nextPacketPtr+6;
       // Set the read pointer to the start of the received packet
@@ -361,13 +361,6 @@ Enc28J60Network::receivePacket(void)
       // This frees the memory we just read out
       setERXRDPT();
     }
-  else if (epktcnt!=readReg(EPKTCNT))
-    {
-    #if ACTLOGLEVEL>=LOG_ERR
-      LogObject.uart_send_strln(F("Enc28J60Network::receivePacket(void) ERROR:Packet count readed differ values. SPI bus ERROR!!!"));
-    #endif
-    }
-
   return (NOBLOCK);
 }
 
@@ -380,7 +373,7 @@ Enc28J60Network::setERXRDPT(void)
   nextPacketPtr == RXSTART_INIT ? RXSTOP_INIT : nextPacketPtr-1;
   if (nextPacketPtr>RXSTOP_INIT) {nextPacketPtr=RXSTART_INIT;}
   if ((nextPacketPtr&1)!=0) {nextPacketPtr--;}
-  #if ACTLOGLEVEL>=LOG_LOG_DEBUG
+  #if ACTLOGLEVEL>=LOG_DEBUG
     LogObject.uart_send_str(F("Enc28J60Network::setERXRDPT(void) DEBUG:Set nextPacketPtr:"));
     LogObject.uart_send_hexln(nextPacketPtr);
   #endif
