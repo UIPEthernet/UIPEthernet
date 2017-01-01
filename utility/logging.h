@@ -16,8 +16,9 @@
 
 #warning "You can configure LogObject and ACTLOGLEVEL in 'utility/logging.h'. More verbosity more memory usage."
 //#define ACTLOGLEVEL     LOG_NONE
-//#define ACTLOGLEVEL LOG_INFO
-#define ACTLOGLEVEL LOG_DEBUG_V3
+//#define ACTLOGLEVEL LOG_WARNING
+#define ACTLOGLEVEL LOG_INFO
+//#define ACTLOGLEVEL LOG_DEBUG_V3
 
 #if ACTLOGLEVEL>LOG_NONE 
    #if defined(ARDUINO)
@@ -42,13 +43,13 @@
      #include "mbed/Print.h"
      extern Serial LogObject;
      #define uart_send_str(x) printf("%s",x)
-     #define uart_send_strln(x) printf("%s\n",x)
+     #define uart_send_strln(x) printf("%s\r\n",x)
      #define uart_send_dec(x) printf("%d",x)
-     #define uart_send_decln(x) printf("%d",x)
+     #define uart_send_decln(x) printf("%d\r\n",x)
      #define uart_send_hex(x) printf("%X",x)
-     #define uart_send_hexln(x) printf("%X",x)
+     #define uart_send_hexln(x) printf("%X\r\n",x)
      #define uart_send_bin(x) printf("%B",x)
-     #define uart_send_binln(x) printf("%B",x)
+     #define uart_send_binln(x) printf("%B\r\n",x)
      #define uart_send_buf_len(buf,len) printf("%.*s",len,buf);
    #endif
 #endif
