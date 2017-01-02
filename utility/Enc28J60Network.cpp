@@ -370,14 +370,15 @@ Enc28J60Network::setERXRDPT(void)
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("Enc28J60Network::setERXRDPT(void) DEBUG_V3:Function started"));
   #endif
-  nextPacketPtr == RXSTART_INIT ? RXSTOP_INIT : nextPacketPtr-1;
-  if (nextPacketPtr>RXSTOP_INIT) {nextPacketPtr=RXSTART_INIT;}
-  if ((nextPacketPtr&1)!=0) {nextPacketPtr--;}
+  uint16_t actnextPacketPtr;
+  nextPacketPtr == RXSTART_INIT ? actnextPacketPtr=RXSTOP_INIT : actnextPacketPtr=nextPacketPtr-1;
+  if (actnextPacketPtr>RXSTOP_INIT) {actnextPacketPtr=RXSTART_INIT;}
+  if ((actnextPacketPtr&1)!=0) {actnextPacketPtr--;}
   #if ACTLOGLEVEL>=LOG_DEBUG
-    LogObject.uart_send_str(F("Enc28J60Network::setERXRDPT(void) DEBUG:Set nextPacketPtr:"));
-    LogObject.uart_send_hexln(nextPacketPtr);
+    LogObject.uart_send_str(F("Enc28J60Network::setERXRDPT(void) DEBUG:Set actnextPacketPtr:"));
+    LogObject.uart_send_hexln(actnextPacketPtr);
   #endif
-  writeRegPair(ERXRDPTL, nextPacketPtr);
+  writeRegPair(ERXRDPTL, actnextPacketPtr);
 }
 
 memaddress
