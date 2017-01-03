@@ -7,7 +7,11 @@
 //#include <stdlib.h>
 #if defined(ARDUINO)
   #include "Arduino.h"
-  #include "Udp.h"
+  #if defined(__STM32F3__) || defined(STM32F3)
+    #include "mbed/Udp.h"
+  #else
+    #include "Udp.h"
+  #endif
 #endif
 #if defined(__MBED__)
   #include <mbed.h>
