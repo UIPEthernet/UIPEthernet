@@ -34,7 +34,9 @@
 #ifndef udp_h
     #define udp_h
 
-    #include <mbed.h>
+    #if defined(__MBED__)
+      #include <mbed.h>
+    #endif
     #include "IPAddress.h"
 
 //class UDP : public Stream {
