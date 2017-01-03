@@ -52,10 +52,10 @@ typedef struct {
   bool send;
 } uip_udp_userdata_t;
  
-#if defined(ARDUINO)
+#if defined(ARDUINO) && !defined(STM32F3)
   class UIPUDP : public UDP {
 #endif
-#if defined(__MBED__)
+#if defined(__MBED__) || defined(STM32F3)
   class UIPUDP : public Print, public UDP {
 #endif
 private:

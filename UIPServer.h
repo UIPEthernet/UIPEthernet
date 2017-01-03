@@ -34,10 +34,10 @@
 #endif
 #include "UIPClient.h"
 
-#if defined(ARDUINO)
+#if defined(ARDUINO) && !defined(STM32F3)
   class UIPServer : public Server {
 #endif
-#if defined(__MBED__)
+#if defined(__MBED__) || defined(STM32F3)
   class UIPServer : public Print, public Server {
 #endif
 public:
