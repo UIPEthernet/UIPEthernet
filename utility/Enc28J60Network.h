@@ -56,6 +56,13 @@
   #define ENC28J60_CONTROL_CS SPI_CS
 #endif
 
+#if defined(STM32F3)                //This is workaround for stm32duino STM32F3
+  #define BOARD_SPI1_NSS_PIN        PA4
+  #define BOARD_SPI1_SCK_PIN        PA5
+  #define BOARD_SPI1_MISO_PIN       PA6
+  #define BOARD_SPI1_MOSI_PIN       PA7
+#endif                              //This is workaround for stm32duino STM32F3
+
 #if !defined(ENC28J60_CONTROL_CS)
    #if defined(__AVR__) || defined(ESP8266)
       // Arduino Uno (__AVR__) SS defined to pin 10
@@ -133,8 +140,12 @@
    #error "Not defined SPI_SCK!"
 #endif
 
-#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__) || defined(ESP8266)
-   #include <SPI.h>
+#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(ESP8266)
+   #if defined(__STM32F3__) || defined(STM32F3)
+      #include "HardwareSPI.h"
+   #else
+      #include <SPI.h>
+   #endif
    #define ENC28J60_USE_SPILIB 1
 #endif
 

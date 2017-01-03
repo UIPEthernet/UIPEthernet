@@ -33,9 +33,14 @@
 #include "logging.h"
 
 #if ENC28J60_USE_SPILIB
-   #include <SPI.h>
    #if defined(ARDUINO)
-     extern SPIClass SPI;
+     #if !defined(STM32F3)
+       #include <SPI.h>
+       extern SPIClass SPI;
+     #else
+       #include "HardwareSPI.h"
+       extern HardwareSPI SPI(1);
+     #endif
    #endif
    #if defined(__MBED__)
      SPI _spi(SPI_MOSI,SPI_MISO,SPI_SCK);
@@ -121,7 +126,11 @@ void Enc28J60Network::init(uint8_t* macaddr)
     LogObject.uart_send_strln(F("ENC28J60::init DEBUG:Use SPI lib SPI.begin()"));
   #endif
   #if defined(ARDUINO)
-    SPI.begin();
+    #if defined(__STM32F3__) || defined(STM32F3)
+      SPI.begin(SPI_9MHZ, MSBFIRST, 0);
+    #else
+      SPI.begin();
+    #endif
   #endif
   #if defined(ARDUINO_ARCH_AVR)
     // AVR-specific code
@@ -138,7 +147,9 @@ void Enc28J60Network::init(uint8_t* macaddr)
     SPI.setClockDivider(SPI_CLOCK_DIV8); //value 8 the result is 9MHz at 72MHz clock.
   #else
     #if defined(ARDUINO)
-      SPI.setBitOrder(MSBFIRST);
+      #if !defined(__STM32F3__) && !defined(STM32F3)
+        SPI.setBitOrder(MSBFIRST);
+      #endif
       //SPI.setDataMode(SPI_MODE0);
       //SPI.setClockDivider(SPI_CLOCK_DIV16);
     #endif
