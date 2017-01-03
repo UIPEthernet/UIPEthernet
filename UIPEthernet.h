@@ -26,7 +26,11 @@
 #endif
 #if defined(ARDUINO)
   #include <Arduino.h>
-  #include "IPAddress.h"
+  #if defined(__STM32F3__) || defined(STM32F3)
+    #include "mbed/IPAddress.h"
+  #else
+    #include "IPAddress.h"
+  #endif
 #endif
 #include "Dhcp.h"
 #include "utility/Enc28J60Network.h"
