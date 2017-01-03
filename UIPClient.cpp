@@ -139,10 +139,10 @@ UIPClient::stop()
       _dumpAllData();
     #endif
     }
-#if ACTLOGLEVEL>=LOG_DEBUG
+#if ACTLOGLEVEL>=LOG_DEBUG_V3
   else
     {
-      LogObject.uart_send_strln(F("UIPClient::stop() DEBUG:stop(), data: NULL"));
+      LogObject.uart_send_strln(F("UIPClient::stop() DEBUG_V3:stop(), data: NULL"));
     }
 #endif
   data = NULL;
@@ -194,7 +194,7 @@ UIPClient::write(const uint8_t *buf, size_t size)
   return _write(data, buf, size);
 }
 
-int16_t
+uint16_t
 UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
@@ -271,7 +271,8 @@ ready:
 #endif
       return size-remain;
     }
-  return -1;
+  //return -1; -1 is wrong because return type is unsigned
+  return 0;
 }
 
 int

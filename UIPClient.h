@@ -102,7 +102,7 @@ private:
   static uip_userdata_t all_data[UIP_CONNS];
   static uip_userdata_t* _allocateData();
 
-  static int16_t _write(uip_userdata_t *,const uint8_t *buf, size_t size);
+  static uint16_t _write(uip_userdata_t *,const uint8_t *buf, size_t size);
   static int _available(uip_userdata_t *);
 
   static uint8_t _currentBlock(memhandle* blocks);
