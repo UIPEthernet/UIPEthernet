@@ -65,8 +65,10 @@
    #elif defined(ARDUINO_ARCH_SAM)
       // Arduino Due (ARDUINO_ARCH_SAM) BOARD_SPI_DEFAULT_SS (SS3) defined to pin 78
       #define ENC28J60_CONTROL_CS     BOARD_SPI_DEFAULT_SS
-   #elif defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-      #ifdef ARDUINO_STM32F4_NETDUINO2PLUS
+   #elif defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
+      #if defined(BOARD_SPI1_NSS_PIN)
+         #define ENC28J60_CONTROL_CS     BOARD_SPI1_NSS_PIN
+      #elif defined(ARDUINO_STM32F4_NETDUINO2PLUS)
          #define ENC28J60_CONTROL_CS     PC8
       #else
          #define ENC28J60_CONTROL_CS     SPI.nssPin()
@@ -86,8 +88,12 @@
       #define SPI_MOSI MOSI
    #elif defined(ARDUINO_ARCH_SAM)
       #define SPI_MOSI PIN_SPI_MOSI
-   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-      #define SPI_MOSI SPI.mosiPin()
+   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
+      #if defined(BOARD_SPI1_MOSI_PIN)
+         #define SPI_MOSI BOARD_SPI1_MOSI_PIN
+      #else
+         #define SPI_MOSI SPI.mosiPin()
+      #endif
    #endif
 #endif
 #if !defined(SPI_MOSI)
@@ -99,8 +105,12 @@
       #define SPI_MISO MISO
    #elif defined(ARDUINO_ARCH_SAM)
       #define SPI_MISO PIN_SPI_MISO
-   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-      #define SPI_MISO SPI.misoPin()
+   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
+      #if defined(BOARD_SPI1_MISO_PIN)
+         #define SPI_MISO BOARD_SPI1_MISO_PIN
+      #else
+         #define SPI_MISO SPI.misoPin()
+      #endif
    #endif
 #endif
 #if !defined(SPI_MISO)
@@ -111,8 +121,12 @@
       #define SPI_SCK SCK
    #elif defined(ARDUINO_ARCH_SAM)
       #define SPI_SCK PIN_SPI_SCK
-   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-      #define SPI_SCK SPI.sckPin()
+   #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
+      #if defined(BOARD_SPI1_SCK_PIN)
+         #define SPI_SCK BOARD_SPI1_SCK_PIN
+      #else
+         #define SPI_SCK SPI.sckPin()
+      #endif
    #endif
 #endif
 #if !defined(SPI_SCK)
