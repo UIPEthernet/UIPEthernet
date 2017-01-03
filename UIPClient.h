@@ -23,7 +23,11 @@
 #include "ethernet_comp.h"
 #if defined(ARDUINO)
   #include "Print.h"
-  #include "Client.h"
+  #if defined(__STM32F3__) || defined(STM32F3)
+    #include "mbed/Client.h"
+  #else
+    #include "Client.h"
+  #endif
 #endif
 #if defined(__MBED__)
   #include "mbed/Print.h"
