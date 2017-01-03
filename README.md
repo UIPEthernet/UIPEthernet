@@ -9,13 +9,12 @@ Modifications:
 - Merged martinayotte's modification (Correct s_dhcp ~40K more memory usage with STM32F MCU-s.)
 - Moved htons,ntohs,htonl,ntohl definitions to uip.h.
 - Corrected infinite loops.
-- Set the version to 1.2.1
+- Set the version to 1.2.2
 - Corrected ESP8266 exception(28).
 - Added watchdog reset calls in functions for stable running on ESP8266.
 - Added geterevid function to get ENC28j60 chip erevid (revision information).
 - Changed linkStatus to static for outside call.
 - Added functions bypass, if can't communicate with ethernet device.
-- Added SPI bus instabil communication detection.
 - Changed debuging/logging. Remove individual debuging. Add global and scalable debuging feature.
 You can setup debuging/logging level in utility/logging.h
 You can use this header file in Your scetch too.
