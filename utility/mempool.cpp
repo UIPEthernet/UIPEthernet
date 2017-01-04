@@ -19,6 +19,7 @@
 
 #include "mempool.h"
 #include <string.h>
+#include "logging.h"
 
 #define POOLOFFSET 1
 
@@ -27,6 +28,9 @@ struct memblock MemoryPool::blocks[MEMPOOL_NUM_MEMBLOCKS+1];
 void
 MemoryPool::init()
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("MemoryPool::init() DEBUG_V3:Function started"));
+  #endif
   memset(&blocks[0], 0, sizeof(blocks));
   blocks[POOLSTART].begin = MEMPOOL_STARTADDRESS;
   blocks[POOLSTART].size = 0;
@@ -36,6 +40,17 @@ MemoryPool::init()
 memhandle
 MemoryPool::allocBlock(memaddress size)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("MemoryPool::allocBlock(memaddress size) DEBUG_V3:Function started"));
+  #endif
+  if (size==0)
+    {
+    #if ACTLOGLEVEL>=LOG_WARNING
+      LogObject.uart_send_strln(F("MemoryPool::allocBlock(memaddress size) WARNING: Called 0 size"));
+    #endif
+    return NOBLOCK;
+    }
+
   memblock* best = NULL;
   memhandle cur = POOLSTART;
   memblock* block = &blocks[POOLSTART];
@@ -110,18 +125,36 @@ MemoryPool::allocBlock(memaddress size)
           block->size = size;
           block->nextblock = best->nextblock;
           best->nextblock = cur;
+          #if ACTLOGLEVEL>=LOG_DEBUG_V3
+            LogObject.uart_send_str(F("MemoryPool::allocBlock(memaddress size) DEBUG_V3:Allocated "));
+            LogObject.uart_send_dec(size);
+            LogObject.uart_send_str(F("byte to block:"));
+            LogObject.uart_send_decln(cur);
+          #endif
           return cur;
         }
     }
 
-  notfound: return NOBLOCK;
+  notfound:
+  #if ACTLOGLEVEL>=LOG_ERR
+    LogObject.uart_send_strln(F("MemoryPool::allocBlock(memaddress size) ERROR:Failed to allocate memory for packet"));
+  #endif
+  return NOBLOCK;
 }
 
 void
 MemoryPool::freeBlock(memhandle handle)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("MemoryPool::freeBlock(memhandle handle) DEBUG_V3:Function started"));
+  #endif
   if (handle == NOBLOCK)
+    {
+    #if ACTLOGLEVEL>=LOG_WARNING
+      LogObject.uart_send_strln(F("MemoryPool::freeBlock(memhandle handle) WARNING: Don't free NOBLOCK handle"));
+    #endif
     return;
+    }
   memblock *b = &blocks[POOLSTART];
 
   do
@@ -151,6 +184,9 @@ MemoryPool::freeBlock(memhandle handle)
 void
 MemoryPool::resizeBlock(memhandle handle, memaddress position)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("MemoryPool::resizeBlock(memhandle handle, memaddress position) DEBUG_V3:Function started"));
+  #endif
   memblock * block = &blocks[handle];
   block->begin += position;
   block->size -= position;
@@ -159,6 +195,9 @@ MemoryPool::resizeBlock(memhandle handle, memaddress position)
 void
 MemoryPool::resizeBlock(memhandle handle, memaddress position, memaddress size)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("MemoryPool::resizeBlock(memhandle handle, memaddress position, memaddress size) DEBUG_V3:Function started"));
+  #endif
   memblock * block = &blocks[handle];
   block->begin += position;
   block->size = size;
@@ -167,5 +206,8 @@ MemoryPool::resizeBlock(memhandle handle, memaddress position, memaddress size)
 memaddress
 MemoryPool::blockSize(memhandle handle)
 {
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("MemoryPool::blockSize(memhandle handle) DEBUG_V3:Function started"));
+  #endif
   return blocks[handle].size;
 }
