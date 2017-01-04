@@ -480,8 +480,8 @@ finish_newdata:
         }
       if (uip_poll() || uip_rexmit())
         {
-#if ACTLOGLEVEL>=LOG_DEBUG
-          LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG:UIPClient uip_poll ||uip_remix"));
+#if ACTLOGLEVEL>=LOG_DEBUG_V3
+          LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V3:UIPClient uip_poll || uip_rexmit"));
 #endif
           if (u->packets_out[0] != NOBLOCK)
             {
