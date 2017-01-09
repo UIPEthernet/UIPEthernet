@@ -3,6 +3,8 @@ UIPEthernet library for Arduinos (Atmel AVR-s,Atmel SAM3X8E ARM Cortex-M3,STM32F
 
 Original UIPEthernet writed by Norbert Truchsess.
 
+You can find wiring diagram for more board in the hardware directory.
+
 Modifications:
 - Replaced import to include, because gcc say 'import is deprecated'.
 - Added support for STM32F, and ESP8266 MCU-s.
