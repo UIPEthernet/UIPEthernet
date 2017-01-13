@@ -132,9 +132,11 @@ while(true) {
           client.stop();
         }
       else
+        {
         #if ACTLOGLEVEL>=LOG_INFO
           LogObject.uart_send_strln(F("Client connect failed"));
         #endif
+        }
     }
 }
 #if defined(__MBED__)
