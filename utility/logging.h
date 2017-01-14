@@ -51,6 +51,8 @@
      #define uart_send_bin(x) printf("%B",x)
      #define uart_send_binln(x) printf("%B\r\n",x)
      #define uart_send_buf_len(buf,len) printf("%.*s",len,buf);
+
+     #define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
    #endif
 #endif
 
@@ -61,9 +63,6 @@
   #else
     #define FP(x)     (__FlashStringHelper*)(x)         // Helper
   #endif
-#endif
-#if defined(__MBED__)
-//  #define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
 #endif
 
 #endif
