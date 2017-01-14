@@ -226,8 +226,8 @@ newpacket:
             }
           u->out_pos = 0;
         }
-#if ACTLOGLEVEL>=LOG_DEBUG
-      LogObject.uart_send_str(F("UIPClient::_write DEBUG:writePacket("));
+#if ACTLOGLEVEL>=LOG_DEBUG_V2
+      LogObject.uart_send_str(F("UIPClient::_write DEBUG_V2:writePacket("));
       LogObject.uart_send_dec(u->packets_out[p]);
       LogObject.uart_send_str(F(") pos: "));
       LogObject.uart_send_dec(u->out_pos);
@@ -236,15 +236,11 @@ newpacket:
       LogObject.uart_send_str(F("-"));
       LogObject.uart_send_dec(remain);
       LogObject.uart_send_str(F("]: '"));
-      #if defined(ARDUINO)
-        LogObject.uart_send_buf_len((uint8_t*)buf+size-remain,remain);
-      #endif
-      #if defined(__MBED__)
-        for(int i=0; i<remain; i++)
-          {
-	  //LogObject.uart_send_buf_len((uint8_t*)buf+size-remain,remain); //MBED buffer out serial
-          }
-      #endif
+      for (uint16_t i=size-remain; i<=remain; i++)
+        {
+        LogObject.uart_send_hex(buf[i]);
+        LogObject.uart_send_str(F(" "));
+        }
       LogObject.uart_send_strln(F("'"));
 #endif
       written = Enc28J60Network::writePacket(u->packets_out[p],u->out_pos,(uint8_t*)buf+size-remain,remain);
@@ -266,6 +262,9 @@ newpacket:
           goto newpacket;
         }
 ready:
+#if ACTLOGLEVEL>=LOG_DEBUG_V2
+      LogObject.uart_send_str(F("UIPClient::_write DEBUG_V2: READY"));
+#endif
 #if UIP_CLIENT_TIMER >= 0
       u->timer = millis()+UIP_CLIENT_TIMER;
 #endif
@@ -537,6 +536,10 @@ finish_newdata:
   finish:
   uip_send(uip_appdata,send_len);
   uip_len = send_len;
+#if ACTLOGLEVEL>=LOG_DEBUG_V2
+  LogObject.uart_send_str(F("uipclient_appcall(void) DEBUG_V2: uip_len set to:"));
+  LogObject.uart_send_decln(uip_len);
+#endif
 }
 
 uip_userdata_t *
