@@ -21,6 +21,6 @@ Modifications:
 You can setup debuging/logging level in utility/logging.h
 You can use this header file in Your scetch too.
 Add "LogObject" define for serial logging/debuging with board specific default setting.
-- Added support to MBED/SMeshStudio IDE. (Compiled to STM32F103RB (Nucleo).)
+- Added support to MBED/SMeshStudio IDE. (Compiled and tested on Nucleo-F302R8. (STM32F302R8))
 
 - (In 1.2.1) Added Abstract Print class to MBED for full compatibility (Can use print, println with uip objects.)
