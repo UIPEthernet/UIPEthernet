@@ -28,6 +28,7 @@
 #endif
 #if defined(__MBED__)
   #include <mbed.h>
+  #include "mbed/millis.h"
   #define delay(x) wait_ms(x)
 #endif
 #include "logging.h"
@@ -108,6 +109,9 @@ void Enc28J60Network::init(uint8_t* macaddr)
   #if defined(ARDUINO)
   	  pinMode(ENC28J60_CONTROL_CS, OUTPUT);
   #endif
+  #if defined(__MBED__)
+  	 millis_start(); 
+  #endif
   CSPASSIVE; // ss=0
   //
 
@@ -150,6 +154,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
       #if !defined(__STM32F3__) && !defined(STM32F3)
         SPI.setBitOrder(MSBFIRST);
       #endif
+      //Settings for ESP8266
       //SPI.setDataMode(SPI_MODE0);
       //SPI.setClockDivider(SPI_CLOCK_DIV16);
     #endif
@@ -480,6 +485,21 @@ Enc28J60Network::readPacket(memhandle handle, memaddress position, uint8_t* buff
   #endif
   len = setReadPtr(handle, position, len);
   readBuffer(len, buffer);
+  #if ACTLOGLEVEL>=LOG_DEBUG_V2
+    LogObject.uart_send_str(F("Enc28J60Network::readPacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len) DEBUG_V2: Read bytes:"));
+    LogObject.uart_send_dec(len);
+    LogObject.uart_send_str(F(" save to block("));
+    LogObject.uart_send_dec(handle);
+    LogObject.uart_send_str(F(") ["));
+    LogObject.uart_send_hex(position);
+    LogObject.uart_send_str(F("]: "));
+    for (uint16_t i=0; i<len; i++)
+      {
+      LogObject.uart_send_hex(buffer[i]);
+      LogObject.uart_send_str(F(" "));
+      }
+    LogObject.uart_send_strln(F(""));
+  #endif
   return len;
 }
 
@@ -501,6 +521,21 @@ Enc28J60Network::writePacket(memhandle handle, memaddress position, uint8_t* buf
   if (len > packet->size - position)
     len = packet->size - position;
   writeBuffer(len, buffer);
+  #if ACTLOGLEVEL>=LOG_DEBUG_V2
+    LogObject.uart_send_str(F("Enc28J60Network::writePacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len) DEBUG_V2: Write bytes:"));
+    LogObject.uart_send_dec(len);
+    LogObject.uart_send_str(F(" save to block("));
+    LogObject.uart_send_dec(handle);
+    LogObject.uart_send_str(F(") ["));
+    LogObject.uart_send_hex(start);
+    LogObject.uart_send_str(F("]: "));
+    for (uint16_t i=0; i<len; i++)
+      {
+      LogObject.uart_send_hex(buffer[i]);
+      LogObject.uart_send_str(F(" "));
+      }
+    LogObject.uart_send_strln(F(""));
+  #endif
   return len;
 }
 
