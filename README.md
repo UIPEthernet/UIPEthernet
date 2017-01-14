@@ -11,7 +11,7 @@ Modifications:
 - Merged martinayotte's modification (Correct s_dhcp ~40K more memory usage with STM32F MCU-s.)
 - Moved htons,ntohs,htonl,ntohl definitions to uip.h.
 - Corrected infinite loops.
-- Set the version to 1.2.2
+- Set the version to 1.2.3
 - Corrected ESP8266 exception(28).
 - Added watchdog reset calls in functions for stable running on ESP8266.
 - Added geterevid function to get ENC28j60 chip erevid (revision information).
