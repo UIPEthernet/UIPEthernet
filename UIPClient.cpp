@@ -536,8 +536,8 @@ finish_newdata:
   finish:
   uip_send(uip_appdata,send_len);
   uip_len = send_len;
-#if ACTLOGLEVEL>=LOG_DEBUG_V2
-  LogObject.uart_send_str(F("uipclient_appcall(void) DEBUG_V2: uip_len set to:"));
+#if ACTLOGLEVEL>=LOG_DEBUG_V3
+  LogObject.uart_send_str(F("uipclient_appcall(void) DEBUG_V3: uip_len set to:"));
   LogObject.uart_send_decln(uip_len);
 #endif
 }

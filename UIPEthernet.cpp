@@ -312,8 +312,8 @@ if (Enc28J60Network::geterevid()==0)
               }
            else
               {
-              #if ACTLOGLEVEL>=LOG_DEBUG_V1
-                 LogObject.uart_send_strln(F("UIPEthernetClass::tick() DEBUG_V1:((uip_userdata_t*)uip_conn->appstate) is NULL"));
+              #if ACTLOGLEVEL>=LOG_DEBUG_V3
+                 LogObject.uart_send_strln(F("UIPEthernetClass::tick() DEBUG_V3:((uip_userdata_t*)uip_conn->appstate) is NULL"));
               #endif
               if ((long)( now - ((uip_userdata_t*)uip_conn)->timer) >= 0)
                  {
