@@ -23,8 +23,7 @@
 #define UIP_PERIODIC_TIMER       250
 
 /* timer to poll client for data after last write (in ms)
- * set to -1 to disable fast polling and rely on periodic only (saves 100 bytes flash)
- * Default value by Norbert is 10 */
-#define UIP_CLIENT_TIMER         -1
+ * set to -1 to disable fast polling and rely on periodic only (saves 100 bytes flash) */
+#define UIP_CLIENT_TIMER         10
 
 #endif
