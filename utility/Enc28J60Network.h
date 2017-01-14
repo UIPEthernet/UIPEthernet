@@ -63,6 +63,10 @@
   #define BOARD_SPI1_MOSI_PIN       PA7
 #endif                              //This is workaround for stm32duino STM32F3
 
+#if defined(BOARD_discovery_f4)
+  #define __STM32F4__
+#endif
+
 #if !defined(ENC28J60_CONTROL_CS)
    #if defined(__AVR__) || defined(ESP8266)
       // Arduino Uno (__AVR__) SS defined to pin 10

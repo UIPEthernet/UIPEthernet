@@ -35,7 +35,7 @@
 
 #if ENC28J60_USE_SPILIB
    #if defined(ARDUINO)
-     #if !defined(STM32F3)
+     #if !defined(STM32F3) && !defined(__STM32F4__)
        #include <SPI.h>
        extern SPIClass SPI;
      #else
@@ -130,7 +130,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
     LogObject.uart_send_strln(F("ENC28J60::init DEBUG:Use SPI lib SPI.begin()"));
   #endif
   #if defined(ARDUINO)
-    #if defined(__STM32F3__) || defined(STM32F3)
+    #if defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       SPI.begin(SPI_9MHZ, MSBFIRST, 0);
     #else
       SPI.begin();
@@ -142,7 +142,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
   #elif defined(ARDUINO_ARCH_SAM)
     // SAM-specific code
     SPI.setClockDivider(10); //defaults to 21 which results in aprox. 4MHZ. A 10 should result in a little more than 8MHZ.
-  #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+  #elif defined(__STM32F1__) || defined(__STM32F3__)
     // generic, non-platform specific code
     #define USE_STM32F1_DMAC 1 //on STM32
     // BOARD_NR_SPI >= 1   BOARD_SPI1_NSS_PIN,     BOARD_SPI1_SCK_PIN,     BOARD_SPI1_MISO_PIN,     BOARD_SPI1_MOSI_PIN
@@ -151,7 +151,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
     SPI.setClockDivider(SPI_CLOCK_DIV8); //value 8 the result is 9MHz at 72MHz clock.
   #else
     #if defined(ARDUINO)
-      #if !defined(__STM32F3__) && !defined(STM32F3)
+      #if !defined(__STM32F3__) && !defined(STM32F3) && !defined(__STM32F4__)
         SPI.setBitOrder(MSBFIRST);
       #endif
       //Settings for ESP8266

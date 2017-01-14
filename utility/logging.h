@@ -22,8 +22,9 @@
 
 #if ACTLOGLEVEL>LOG_NONE 
    #if defined(ARDUINO)
+     #include <Arduino.h>
      #include "HardwareSerial.h"
-     #if defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+     #if defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(ARDUINO_ARCH_SAM)
         #define LogObject Serial1
      #else
         #define LogObject Serial
