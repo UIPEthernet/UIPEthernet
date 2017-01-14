@@ -54,11 +54,16 @@
    #endif
 #endif
 
-#if defined(__MBED__) || defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-   #define F(x) (const char *)(x)
-   #define FP(x) (const char *)(x)
-#else
-   #define FP(x)     (__FlashStringHelper*)(x)         // Helper
+#if defined(ARDUINO)
+  #if defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+    #define F(x) (const char *)(x)
+    #define FP(x) (const char *)(x)
+  #else
+    #define FP(x)     (__FlashStringHelper*)(x)         // Helper
+  #endif
+#endif
+#if defined(__MBED__)
+  #define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
 #endif
 
 #endif
