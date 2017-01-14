@@ -141,7 +141,7 @@
 #endif
 
 #if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(ESP8266)
-   #if defined(__STM32F3__) || defined(STM32F3)
+   #if defined(ARDUINO) && defined(STM32F3)
       #include "HardwareSPI.h"
    #else
       #include <SPI.h>
