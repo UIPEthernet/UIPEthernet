@@ -1,6 +1,13 @@
 #ifndef __LOGGING_H__
 #define __LOGGING_H__
 
+#if defined(ARDUINO)
+  #include <Arduino.h>
+#endif
+#if defined(__MBED__)
+  #include <mbed.h>
+#endif
+
 #define	LOG_NONE		-1	/* Logging nothing */
 #define	LOG_EMERG		0	/* system is unusable */
 #define	LOG_ALERT		1	/* action must be taken immediately */
@@ -18,11 +25,10 @@
 #define ACTLOGLEVEL     LOG_NONE
 //#define ACTLOGLEVEL LOG_WARNING
 //#define ACTLOGLEVEL LOG_INFO
-//#define ACTLOGLEVEL LOG_DEBUG_V3
+//#define ACTLOGLEVEL LOG_DEBUG_V2
 
 #if ACTLOGLEVEL>LOG_NONE 
    #if defined(ARDUINO)
-     #include <Arduino.h>
      #include "HardwareSerial.h"
      #if defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(ARDUINO_ARCH_SAM)
         #define LogObject Serial1
@@ -52,18 +58,14 @@
      #define uart_send_bin(x) printf("%B",x)
      #define uart_send_binln(x) printf("%B\r\n",x)
      #define uart_send_buf_len(buf,len) printf("%.*s",len,buf);
-
-     #define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
    #endif
 #endif
 
-#if defined(ARDUINO)
-  #if defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
-    #define F(x) (const char *)(x)
-    #define FP(x) (const char *)(x)
-  #else
-    #define FP(x)     (__FlashStringHelper*)(x)         // Helper
-  #endif
+#if defined(__MBED__) || defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(__STM32F4__)
+  #define F(x) (const char *)(x)
+  #define FP(x) (const char *)(x)
+#else
+  #define FP(x)     (__FlashStringHelper*)(x)         // Helper
 #endif
 
 #endif
