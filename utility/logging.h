@@ -46,7 +46,6 @@
      #define uart_send_buf_len(buf,len) write(buf,len)
    #endif
    #if defined(__MBED__)
-     #include <mbed.h>
      #include "mbed/Print.h"
      extern Serial LogObject;
      #define uart_send_str(x) printf("%s",x)
