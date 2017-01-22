@@ -11,7 +11,7 @@ Modifications:
 - Merged martinayotte's modification (Correct s_dhcp ~40K more memory usage with STM32F MCU-s.)
 - Moved htons,ntohs,htonl,ntohl definitions to uip.h.
 - Corrected infinite loops.
-- Set the version to 2.0.0
+- Set the version to 2.0.1
 - Corrected ESP8266 exception(28).
 - Added watchdog reset calls in functions for stable running on ESP8266.
 - Added geterevid function to get ENC28j60 chip erevid (revision information).
@@ -24,3 +24,4 @@ Add "LogObject" define for serial logging/debuging with board specific default s
 - Added support to MBED/SMeshStudio IDE. (Compiled and tested on Nucleo-F302R8. (STM32F302R8))
 
 - Added Abstract Print class to MBED for full compatibility (Can use print, println with uip objects.)
+- Fxing errata 12 by seydamir.
