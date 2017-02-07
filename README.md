@@ -11,7 +11,7 @@ Modifications:
 - Merged martinayotte's modification (Correct s_dhcp ~40K more memory usage with STM32F MCU-s.)
 - Moved htons,ntohs,htonl,ntohl definitions to uip.h.
 - Corrected infinite loops.
-- Set the version to 2.0.1
+- Set the version to 2.0.2
 - Corrected ESP8266 exception(28).
 - Added watchdog reset calls in functions for stable running on ESP8266.
 - Added geterevid function to get ENC28j60 chip erevid (revision information).
@@ -25,6 +25,7 @@ Add "LogObject" define for serial logging/debuging with board specific default s
 
 - Added Abstract Print class to MBED for full compatibility (Can use print, println with uip objects.)
 - Fxing errata 12 by seydamir.
+- Create v2.0.2 release.
 
 If You use NodeMCU please check wiring first:
 https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60_wiring.PNG
