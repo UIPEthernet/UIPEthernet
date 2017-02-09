@@ -18,6 +18,14 @@
  * Adaption to Enc28J60 by Norbert Truchsess <norbert.truchsess@t-online.de>
  */
 
+#define MACADDRESS 0x00,0x01,0x02,0x03,0x04,0x05
+#define MYIPADDR 192,168,1,6
+#define MYIPMASK 255,255,255,0
+#define MYDNS 192,168,1,1
+#define MYGW 192,168,1,1
+#define LISTENPORT 1000
+#define UARTBAUD 115200
+
 #if defined(__MBED__)
   #include <mbed.h>
   #include "mbed/millis.h"
@@ -32,7 +40,13 @@
 #include <UIPClient.h>
 #include "utility/logging.h"
 
-EthernetServer server = EthernetServer(1000);
+uint8_t mac[6] = {MACADDRESS};
+uint8_t myIP[4] = {MYIPADDR};
+uint8_t myMASK[4] = {MYIPMASK};
+uint8_t myDNS[4] = {MYDNS};
+uint8_t myGW[4] = {MYGW};
+
+EthernetServer server = EthernetServer(LISTENPORT);
 
 #if defined(ARDUINO)
 void setup() {
@@ -42,19 +56,19 @@ int main() {
 #endif
   #if ACTLOGLEVEL>LOG_NONE
     #if defined(ARDUINO)
-      LogObject.begin(9600);
+      LogObject.begin(UARTBAUD);
     #endif
     #if defined(__MBED__)
       Serial LogObject(SERIAL_TX,SERIAL_RX);
+      LogObject.baud(UARTBAUD);
     #endif
   #endif
 
-  uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-  IPAddress myIP(192,168,0,6);
-
-  Ethernet.begin(mac,myIP);
-
-  server.begin();
+// initialize the ethernet device
+//Ethernet.begin(mac,myIP);
+Ethernet.begin(mac,myIP,myDNS,myGW,myMASK);
+// start listening for clients
+server.begin();
 #if defined(ARDUINO)
 }
 
