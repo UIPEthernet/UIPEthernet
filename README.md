@@ -24,8 +24,8 @@ Add "LogObject" define for serial logging/debuging with board specific default s
 - Added support to MBED/SMeshStudio IDE. (Compiled and tested on Nucleo-F302R8. (STM32F302R8))
 
 - Added Abstract Print class to MBED for full compatibility (Can use print, println with uip objects.)
-- Fxing errata 12 by seydamir.
-- Create v2.0.2 release.
+- Errata 12 fixed (by seydamir).
+- Created v2.0.2 release.
 
 If You use NodeMCU please check wiring first:
 https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60_wiring.PNG
