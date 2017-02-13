@@ -5,6 +5,8 @@
 #ifndef DNSClient_h
 #define DNSClient_h
 
+#include "utility/uipopt.h"
+#if UIP_UDP
 #include "UIPUdp.h"
 
 class DNSClient
@@ -37,5 +39,6 @@ protected:
     uint16_t iRequestId;
     UIPUDP iUdp;
 };
+#endif
 
 #endif

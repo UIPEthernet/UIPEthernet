@@ -45,13 +45,13 @@ memhandle UIPEthernetClass::uip_packet(NOBLOCK);
 uint8_t UIPEthernetClass::uip_hdrlen(0);
 uint8_t UIPEthernetClass::packetstate(0);
 
-IPAddress UIPEthernetClass::_dnsServerAddress;
-DhcpClass* UIPEthernetClass::_dhcp(NULL);
-
 unsigned long UIPEthernetClass::periodic_timer;
 
-static DhcpClass s_dhcp; // Placing this instance here is saving 40K to final *.bin (see bug below)
-
+IPAddress UIPEthernetClass::_dnsServerAddress;
+#if UIP_UDP
+  DhcpClass* UIPEthernetClass::_dhcp(NULL);
+  static DhcpClass s_dhcp; // Placing this instance here is saving 40K to final *.bin (see bug below)
+#endif
 
 // Because uIP isn't encapsulated within a class we have to use global
 // variables, so we can only have one TCP/IP stack per program.
@@ -564,7 +564,7 @@ uip_tcpchksum(void)
       #else
         LogObject.uart_send_str(F("uip_tcpchksum(void) DEBUG:uip_packet("));
       #endif
-      LogObject.uart_send_dec(uip_packet);
+      LogObject.uart_send_dec(UIPEthernetClass::uip_packet);
       LogObject.uart_send_str(F(")["));
       LogObject.uart_send_dec(UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen);
       LogObject.uart_send_str(F("-"));

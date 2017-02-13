@@ -32,11 +32,14 @@
     #include "IPAddress.h"
   #endif
 #endif
-#include "Dhcp.h"
 #include "utility/Enc28J60Network.h"
+#include "utility/uip-conf.h"
+#include "Dhcp.h"
+#if UIP_UDP
+  #include "UIPUdp.h"
+#endif
 #include "UIPClient.h"
 #include "UIPServer.h"
-#include "UIPUdp.h"
 
 extern "C"
 {
@@ -92,8 +95,9 @@ private:
   static uint8_t packetstate;
   
   static IPAddress _dnsServerAddress;
-  static DhcpClass* _dhcp;
-
+  #if UIP_UDP
+    static DhcpClass* _dhcp;
+  #endif
   static unsigned long periodic_timer;
 
   static void init(const uint8_t* mac);

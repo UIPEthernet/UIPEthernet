@@ -4,7 +4,7 @@
 #ifndef Dhcp_h
 #define Dhcp_h
 
-#include "UIPUdp.h"
+#include "utility/uipopt.h"
 
 /* DHCP state machine. */
 #define STATE_DHCP_START 0
@@ -52,6 +52,9 @@
 #define DHCP_CHECK_RENEW_OK     (2)
 #define DHCP_CHECK_REBIND_FAIL  (3)
 #define DHCP_CHECK_REBIND_OK    (4)
+
+#if UIP_UDP
+#include "UIPUdp.h"
 
 enum
 {
@@ -174,5 +177,5 @@ public:
   int beginWithDHCP(uint8_t *, unsigned long timeout = 60000, unsigned long responseTimeout = 4000);
   int checkLease(void);
 };
-
+#endif
 #endif

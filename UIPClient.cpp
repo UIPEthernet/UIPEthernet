@@ -20,14 +20,16 @@
 
 extern "C"
 {
-#include "utility/uip-conf.h"
+#include "utility/uipopt.h"
 #include "utility/uip.h"
 #include "utility/uip_arp.h"
 #include "string.h"
 }
 #include "UIPEthernet.h"
 #include "UIPClient.h"
-#include "Dns.h"
+#if UIP_UDP
+  #include "Dns.h"
+#endif
 
 #if defined(__AVR__)
    #include <avr/wdt.h>

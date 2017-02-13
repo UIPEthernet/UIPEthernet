@@ -2,6 +2,8 @@
 // (c) Copyright 2009-2010 MCQN Ltd.
 // Released under Apache License, version 2.0
 
+#include "utility/uipopt.h"
+#if UIP_UDP
 #include "Dns.h"
 #include <string.h>
 //#include <stdlib.h>
@@ -430,4 +432,5 @@ int16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     // If we get here then we haven't found an answer
     return -10;//INVALID_RESPONSE;
 }
+#endif
 

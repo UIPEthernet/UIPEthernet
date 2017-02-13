@@ -3,6 +3,8 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include "utility/uipopt.h"
+#if UIP_UDP
 #include "Dhcp.h"
 #if defined(ARDUINO)
   #include <Arduino.h>
@@ -489,3 +491,4 @@ void DhcpClass::printByte(char * buf, uint8_t n ) {
     *str-- = c < 10 ? c + '0' : c + 'A' - 10;
   } while(n);
 }
+#endif
