@@ -46,7 +46,7 @@ int main() {
   #endif
 
   uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-  Ethernet.begin(mac);
+  Ethernet.begin(mac); //Configure IP address via DHCP
 
   #if ACTLOGLEVEL>=LOG_INFO
     LogObject.uart_send_str(F("localIP: "));
