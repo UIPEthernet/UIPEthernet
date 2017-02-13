@@ -22,7 +22,7 @@
 #include "ethernet_comp.h"
 #if defined(ARDUINO)
   #include "Print.h"
-  #if defined(__STM32F3__) || defined(STM32F3)
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
     #include "mbed/Server.h"
   #else
     #include "Server.h"
