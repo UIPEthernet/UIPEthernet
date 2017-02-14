@@ -30,6 +30,7 @@ Add "LogObject" define for serial logging/debuging with board specific default s
 If You use NodeMCU please check wiring first:
 https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60_wiring.PNG
 
+- You can save 5K flash if you disable UDP support.
 - Correction code of Errata#12 modified.
 - Added support for Intel ARC32(Genuino101), Nordic nRF51(RFduino), Teensy boards
 - Issue#4 corrected
