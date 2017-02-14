@@ -1,5 +1,5 @@
 # UIPEthernet
-UIPEthernet library for Arduinos (Atmel AVR-s,Atmel SAM3X8E ARM Cortex-M3,STM32F series,ESP8266), ENC28j60 network chip compatible with Wiznet W5100 API
+UIPEthernet library for Arduinos (Atmel AVR-s,Atmel SAM3X8E ARM Cortex-M3,STM32F series,ESP8266,Intel ARC32(Genuino101),Nordic nRF51(RFduino),Teensy boards), ENC28j60 network chip compatible with Wiznet W5100 API
 
 Original UIPEthernet writed by Norbert Truchsess.
 
@@ -11,7 +11,7 @@ Modifications:
 - Merged martinayotte's modification (Correct s_dhcp ~40K more memory usage with STM32F MCU-s.)
 - Moved htons,ntohs,htonl,ntohl definitions to uip.h.
 - Corrected infinite loops.
-- Set the version to 2.0.2
+- Set the version to 2.0.3
 - Corrected ESP8266 exception(28).
 - Added watchdog reset calls in functions for stable running on ESP8266.
 - Added geterevid function to get ENC28j60 chip erevid (revision information).
@@ -24,8 +24,12 @@ Add "LogObject" define for serial logging/debuging with board specific default s
 - Added support to MBED/SMeshStudio IDE. (Compiled and tested on Nucleo-F302R8. (STM32F302R8))
 
 - Added Abstract Print class to MBED for full compatibility (Can use print, println with uip objects.)
-- Errata 12 fixed (by seydamir).
+- Errata#12 corrected (by seydamir).
 - Created v2.0.2 release.
 
 If You use NodeMCU please check wiring first:
 https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60_wiring.PNG
+
+- Correction code of Errata#12 modified.
+- Added support for Intel ARC32(Genuino101), Nordic nRF51(RFduino), Teensy boards
+- Issue#4 corrected
