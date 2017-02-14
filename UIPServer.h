@@ -21,7 +21,11 @@
 
 #include "ethernet_comp.h"
 #if defined(ARDUINO)
-  #include "Print.h"
+  #if defined(__RFduino__)
+    #include "Print.h"
+  #else
+    #include "Print.h"
+  #endif
   #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
     #include "mbed/Server.h"
   #else
@@ -34,10 +38,10 @@
 #endif
 #include "UIPClient.h"
 
-#if defined(ARDUINO) && !defined(STM32F3)
+#if defined(ARDUINO) && !defined(STM32F3) && !defined(__RFduino__)
   class UIPServer : public Server {
 #endif
-#if defined(__MBED__) || defined(STM32F3)
+#if defined(__MBED__) || defined(STM32F3) || defined(__RFduino__)
   class UIPServer : public Print, public Server {
 #endif
 public:

@@ -71,10 +71,10 @@ typedef struct {
 #endif
 } uip_userdata_t;
 
-#if defined(ARDUINO) && !defined(STM32F3)
+#if defined(ARDUINO) && !defined(STM32F3) && !defined(__RFduino__)
   class UIPClient : public Client {
 #endif
-#if defined(__MBED__) || defined(STM32F3)
+#if defined(__MBED__) || defined(STM32F3) || defined(__RFduino__)
   class UIPClient : public Print, public Client {
 #endif
 public:

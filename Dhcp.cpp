@@ -19,6 +19,9 @@
 
 int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout) DEBUG_V1:Function started"));
+    #endif
     _dhcpLeaseTime=0;
     _dhcpT1=0;
     _dhcpT2=0;
@@ -36,12 +39,18 @@ int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long 
 }
 
 void DhcpClass::reset_DHCP_lease(void){
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::reset_DHCP_lease(void) DEBUG_V1:Function started"));
+    #endif
     // zero out _dhcpSubnetMask, _dhcpGatewayIp, _dhcpLocalIp, _dhcpDhcpServerIp, _dhcpDnsServerIp
     memset(_dhcpLocalIp, 0, 20);
 }
 
 //return:0 on error, 1 if request is sent and response is received
 int DhcpClass::request_DHCP_lease(void){
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:Function started"));
+    #endif
     
     uint8_t messageType = 0;
   
@@ -73,12 +82,18 @@ int DhcpClass::request_DHCP_lease(void){
     {
         if(_dhcp_state == STATE_DHCP_START)
         {
+            #if ACTLOGLEVEL>=LOG_DEBUG_V1
+              LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_START -> send_DHCP_MESSAGE DHCP_DISCOVER"));
+            #endif
             _dhcpTransactionId++;
             
             send_DHCP_MESSAGE(DHCP_DISCOVER, ((millis() - startTime) / 1000));
             _dhcp_state = STATE_DHCP_DISCOVER;
         }
         else if(_dhcp_state == STATE_DHCP_REREQUEST){
+            #if ACTLOGLEVEL>=LOG_DEBUG_V1
+              LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_REREQUEST -> send_DHCP_MESSAGE DHCP_REQUEST"));
+            #endif
             _dhcpTransactionId++;
             send_DHCP_MESSAGE(DHCP_REQUEST, ((millis() - startTime)/1000));
             _dhcp_state = STATE_DHCP_REQUEST;
@@ -89,6 +104,9 @@ int DhcpClass::request_DHCP_lease(void){
             messageType = parseDHCPResponse(_responseTimeout, respId);
             if(messageType == DHCP_OFFER)
             {
+                #if ACTLOGLEVEL>=LOG_DEBUG_V1
+                  LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_DISCOVER,messageType=DHCP_OFFER -> send_DHCP_MESSAGE DHCP_REQUEST"));
+                #endif
                 // We'll use the transaction ID that the offer came with,
                 // rather than the one we were up to
                 _dhcpTransactionId = respId;
@@ -102,6 +120,9 @@ int DhcpClass::request_DHCP_lease(void){
             messageType = parseDHCPResponse(_responseTimeout, respId);
             if(messageType == DHCP_ACK)
             {
+                #if ACTLOGLEVEL>=LOG_DEBUG_V1
+                  LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_REQUEST,messageType=DHCP_ACK"));
+                #endif
                 _dhcp_state = STATE_DHCP_LEASED;
                 result = 1;
                 //use default lease time if we didn't get it
@@ -143,10 +164,16 @@ int DhcpClass::request_DHCP_lease(void){
 
 void DhcpClass::presend_DHCP(void)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::presend_DHCP(void) DEBUG_V1:Function started (Empty function)"));
+    #endif
 }
 
 void DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed) DEBUG_V1:Function started"));
+    #endif
     uint8_t buffer[32];
     memset(buffer, 0, 32);
     IPAddress dest_addr( 255, 255, 255, 255 ); // Broadcast address
@@ -265,6 +292,9 @@ void DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed)
 
 uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId) DEBUG_V1:Function started"));
+    #endif
     uint8_t type = 0;
     uint8_t opt_len = 0;
      
@@ -404,6 +434,10 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
     4/DHCP_CHECK_REBIND_OK: rebind success
 */
 int DhcpClass::checkLease(void){
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::checkLease(void) DEBUG_V1:Function started"));
+    #endif
+
     //this uses a signed / unsigned trick to deal with millis overflow
     unsigned long now = millis();
     signed long snow = (long)now;
@@ -458,30 +492,48 @@ int DhcpClass::checkLease(void){
 
 IPAddress DhcpClass::getLocalIp(void)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::getLocalIp(void) DEBUG_V1:Function started"));
+    #endif
     return IPAddress(_dhcpLocalIp);
 }
 
 IPAddress DhcpClass::getSubnetMask(void)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::getSubnetMask(void) DEBUG_V1:Function started"));
+    #endif
     return IPAddress(_dhcpSubnetMask);
 }
 
 IPAddress DhcpClass::getGatewayIp(void)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::getGatewayIp(void) DEBUG_V1:Function started"));
+    #endif
     return IPAddress(_dhcpGatewayIp);
 }
 
 IPAddress DhcpClass::getDhcpServerIp(void)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::getDhcpServerIp(void) DEBUG_V1:Function started"));
+    #endif
     return IPAddress(_dhcpDhcpServerIp);
 }
 
 IPAddress DhcpClass::getDnsServerIp(void)
 {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::getDnsServerIp(void) DEBUG_V1:Function started"));
+    #endif
     return IPAddress(_dhcpDnsServerIp);
 }
 
 void DhcpClass::printByte(char * buf, uint8_t n ) {
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_str(F("DhcpClass::printByte(char * buf, uint8_t n ) DEBUG_V1:Function started"));
+    #endif
   char *str = &buf[1];
   buf[0]='0';
   do {
