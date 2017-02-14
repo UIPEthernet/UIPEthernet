@@ -1,0 +1,34 @@
+{
+  "name": "UIPEthernet",
+  "keywords": "ENC28j60, Ethernet, UIP, TCP/IP, Network",
+  "description": "Ethernet library for ENC28J60 (Compatible with Wiznet W5100 Ethernet library API.)",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/UIPEthernet/UIPEthernet.git"
+  },
+  "authors":
+  [
+    {
+      "name": "CassyArduino",
+      "email": "cassy@zalaszam.hu",
+      "url": "http://www.zalaszam.hu/~cassy",
+      "maintainer": true
+    }
+  ],
+  "dependencies":
+  {
+    "frameworks": "arduino, MBED"
+  },
+  "version": "2.0.2",
+  "frameworks": "arduino, MBED",
+  "platforms": "atmelavr, atmelsam, espressif8266"
+  "export":
+    {
+    "include":
+      [
+        "UIPEthernet.h",
+        "utility/logging.h",
+      ]
+    }
+}
