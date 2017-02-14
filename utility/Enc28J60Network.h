@@ -66,9 +66,12 @@
 #if defined(BOARD_discovery_f4)
   #define __STM32F4__
 #endif
+#if defined(__MK20DX128__) || defined(__MKL26Z64__)
+  #include <SPIFIFO.h>
+#endif
 
 #if !defined(ENC28J60_CONTROL_CS)
-   #if defined(__AVR__) || defined(ESP8266)
+   #if defined(__AVR__) || defined(ESP8266) || defined(__RFduino__)
       // Arduino Uno (__AVR__) SS defined to pin 10
       // Arduino Mega(__AVR_ATmega2560__) SS defined to pin 53
       // ESP8266 (ESP8266) SS defined to pin 15
@@ -76,6 +79,10 @@
    #elif defined(ARDUINO_ARCH_SAM)
       // Arduino Due (ARDUINO_ARCH_SAM) BOARD_SPI_DEFAULT_SS (SS3) defined to pin 78
       #define ENC28J60_CONTROL_CS     BOARD_SPI_DEFAULT_SS
+   #elif defined(__ARDUINO_ARC__) //Intel ARC32 Genuino 101
+      #define ENC28J60_CONTROL_CS     SS
+   #elif defined(__RFduino__) //RFduino
+      #define ENC28J60_CONTROL_CS     SS
    #elif defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       #if defined(BOARD_SPI1_NSS_PIN)
          #define ENC28J60_CONTROL_CS     BOARD_SPI1_NSS_PIN
@@ -85,6 +92,8 @@
          #define ENC28J60_CONTROL_CS     SPI.nssPin()
          //#define ENC28J60_CONTROL_CS     PA4
       #endif
+   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+      #define ENC28J60_CONTROL_CS     PIN_SPI_SS
    #endif
    #if defined(ENC28J60_CONTROL_CS)
       #warning "Not defined ENC28J60_CONTROL_CS. Use borad default SS pin setting. You can configure in 'utility/Enc28J60Network.h'."
@@ -95,16 +104,22 @@
 #endif
 
 #if !defined(SPI_MOSI)
-   #if defined(__AVR__) || defined(ESP8266)
+   #if defined(__AVR__) || defined(ESP8266) || defined(__RFduino__)
       #define SPI_MOSI MOSI
    #elif defined(ARDUINO_ARCH_SAM)
       #define SPI_MOSI PIN_SPI_MOSI
+   #elif defined(__ARDUINO_ARC__) //Intel ARC32 Genuino 101
+      #define SPI_MOSI MOSI
+   #elif defined(__RFduino__) //RFduino
+      #define SPI_MOSI MOSI
    #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       #if defined(BOARD_SPI1_MOSI_PIN)
          #define SPI_MOSI BOARD_SPI1_MOSI_PIN
       #else
          #define SPI_MOSI SPI.mosiPin()
       #endif
+   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+      #define SPI_MOSI PIN_SPI_MOSI
    #endif
 #endif
 #if !defined(SPI_MOSI)
@@ -112,39 +127,51 @@
 #endif
 
 #if !defined(SPI_MISO)
-   #if defined(__AVR__) || defined(ESP8266)
+   #if defined(__AVR__) || defined(ESP8266) || defined(__RFduino__)
       #define SPI_MISO MISO
    #elif defined(ARDUINO_ARCH_SAM)
       #define SPI_MISO PIN_SPI_MISO
+   #elif defined(__ARDUINO_ARC__) //Intel ARC32 Genuino 101
+      #define SPI_MISO MISO
+   #elif defined(__RFduino__) //RFduino
+      #define SPI_MISO MISO
    #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       #if defined(BOARD_SPI1_MISO_PIN)
          #define SPI_MISO BOARD_SPI1_MISO_PIN
       #else
          #define SPI_MISO SPI.misoPin()
       #endif
+   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+      #define SPI_MISO PIN_SPI_MISO
    #endif
 #endif
 #if !defined(SPI_MISO)
    #error "Not defined SPI_MISO!"
 #endif
 #if !defined(SPI_SCK)
-   #if defined(__AVR__) || defined(ESP8266)
+   #if defined(__AVR__) || defined(ESP8266) || defined(__RFduino__)
       #define SPI_SCK SCK
    #elif defined(ARDUINO_ARCH_SAM)
       #define SPI_SCK PIN_SPI_SCK
+   #elif defined(__ARDUINO_ARC__) //Intel ARC32 Genuino 101
+      #define SPI_SCK SCK
+   #elif defined(__RFduino__) //RFduino
+      #define SPI_SCK SCK
    #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       #if defined(BOARD_SPI1_SCK_PIN)
          #define SPI_SCK BOARD_SPI1_SCK_PIN
       #else
          #define SPI_SCK SPI.sckPin()
       #endif
+   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+      #define SPI_SCK PIN_SPI_SCK
    #endif
 #endif
 #if !defined(SPI_SCK)
    #error "Not defined SPI_SCK!"
 #endif
 
-#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(ESP8266)
+#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(__ARDUINO_ARC__) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(ESP8266) || defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__RFduino__)
    #if defined(ARDUINO) && defined(STM32F3)
       #include "HardwareSPI.h"
    #else
@@ -159,6 +186,8 @@
  * Empfangen von ip-header, arp etc...
  * wenn tcp/udp -> tcp/udp-callback -> assign new packet to connection
  */
+
+#define TX_COLLISION_RETRY_COUNT 10
 
 class Enc28J60Network : public MemoryPool
 {

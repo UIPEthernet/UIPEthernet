@@ -240,6 +240,9 @@ void Enc28J60Network::init(uint8_t* macaddr)
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("ENC28J60::init DEBUG_V3:After writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN)"));
   #endif
+  #if defined(ESP8266)
+     wdt_reset();
+  #endif
   writeRegPair(EPMM0, 0x303f);
   writeRegPair(EPMCSL, 0xf7f9);
   //
@@ -325,7 +328,7 @@ Enc28J60Network::receivePacket(void)
   #if ACTLOGLEVEL>=LOG_ERR
     if (erevid==0)
       {
-        LogObject.uart_send_strln(F("Enc28J60Network::receivePacket(void) ERROR:ENC28j50 Device not found !!! Bypass receivePacket function !!!"));
+      LogObject.uart_send_strln(F("Enc28J60Network::receivePacket(void) ERROR:ENC28j50 Device not found !!! Bypass receivePacket function !!!"));
       }
   #endif
   uint8_t epktcnt=readReg(EPKTCNT);
@@ -415,6 +418,14 @@ Enc28J60Network::sendPacket(memhandle handle)
   #if defined(ESP8266)
      wdt_reset();
   #endif
+  if (erevid==0)
+    {
+    #if ACTLOGLEVEL>=LOG_ERR
+      LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) ERROR:ENC28j50 Device not found !!! Bypass sendPacket function !!!"));
+    #endif
+    return;
+    }
+
   memblock *packet = &blocks[handle];
   uint16_t start = packet->begin-1;
   uint16_t end = start + packet->size;
@@ -447,33 +458,52 @@ Enc28J60Network::sendPacket(memhandle handle)
   writeRegPair(ETXNDL, end);
   // send the contents of the transmit buffer onto the network
  
-  // seydamir added
-  // Reset the transmit logic problem. See Rev. B7 Silicon Errata issues 12 and 13
-  writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRST);
-  writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRST);
-  writeOp(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF | EIR_TXIF);
-  // end
+  unsigned int retry = TX_COLLISION_RETRY_COUNT;
+  unsigned int timeout = 100;
+  do
+    {
+    // seydamir added
+    // Reset the transmit logic problem. See Rev. B7 Silicon Errata issues 12 and 13
+    writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRST);
+    writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRST);
+    writeOp(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF | EIR_TXIF);
+    // end
  
-  writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRTS);
-  // Reset the transmit logic problem. See Rev. B4 Silicon Errata point 12.
-  //if( (readReg(EIR) & EIR_TXERIF) )
-  //  {
-  //    writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRTS);
-  //  }
- 
- //seydamir added
-  {
-	uint8_t eir;
-    unsigned long timer = millis();
-    while (((eir = readReg(EIR)) & (EIR_TXIF | EIR_TXERIF)) == 0) {
-      if (millis() - timer > 1000) {
-	     /* Transmit hardware probably hung, try again later. */
-	     /* Shouldn't happen according to errata 12 and 13. */
-	     writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRTS);	
+    writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRTS);
+    // Reset the transmit logic problem. See Rev. B4 Silicon Errata point 12.
+    //if( (readReg(EIR) & EIR_TXERIF) )
+    //  {
+    //    writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRTS);
+    //  }
+
+    timeout = 100;
+    while (((readReg(EIR) & (EIR_TXIF | EIR_TXERIF)) == 0) && (timeout>0))
+      {
+      timeout=timeout-1;
+      delay(10);
+      #if defined(ESP8266)
+         wdt_reset();
+      #endif
       }
-     }
-  }
-  // end
+    if (timeout==0)
+      {
+      /* Transmit hardware probably hung, try again later. */
+      /* Shouldn't happen according to errata 12 and 13. */
+      writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRTS);	
+      #if ACTLOGLEVEL>=LOG_WARN
+        LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) WARNING:Collision"));
+      #endif
+      retry=retry-1;
+      }
+    } while ((timeout == 0) && (retry != 0));
+  if (retry == 0)
+    {
+    #if ACTLOGLEVEL>=LOG_ERROR
+      LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) ERROR:COLLISION !!!"));
+    #endif
+    return;
+    }
+
   //restore data on control-byte position
   if (data)
     writeByte(start, data);
@@ -813,6 +843,9 @@ Enc28J60Network::readOp(uint8_t op, uint8_t address)
     CSPASSIVE;
     return(SPDR);
   #endif
+  #if defined(ESP8266)
+     yield();
+  #endif
 }
 
 void
@@ -843,6 +876,9 @@ Enc28J60Network::writeOp(uint8_t op, uint8_t address, uint8_t data)
     waitspi();
   #endif
   CSPASSIVE;
+  #if defined(ESP8266)
+     yield();
+  #endif
 }
 
 void
