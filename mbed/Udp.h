@@ -36,8 +36,14 @@
 
     #if defined(__MBED__)
       #include <mbed.h>
+      #include "mbed/IPAddress.h"
+    #else
+      #if defined(__RFduino__)
+        #include "IPAddress.h"
+      #else
+        #include "IPAddress.h"
+      #endif
     #endif
-    #include "IPAddress.h"
 
 //class UDP : public Stream {
 class   UDP
