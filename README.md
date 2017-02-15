@@ -34,3 +34,5 @@ https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60
 - Correction code of Errata#12 modified.
 - Added support for Intel ARC32(Genuino101), Nordic nRF51(RFduino), Teensy boards
 - Issue#4 corrected
+- Added support for Realtek Ameba(RTL8195A,RTL8710)
+
