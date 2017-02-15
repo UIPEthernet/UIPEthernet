@@ -1,5 +1,5 @@
 # UIPEthernet
-UIPEthernet library for Arduinos (Atmel AVR-s,Atmel SAM3X8E ARM Cortex-M3,STM32F series,ESP8266,Intel ARC32(Genuino101),Nordic nRF51(RFduino),Teensy boards), ENC28j60 network chip compatible with Wiznet W5100 API
+UIPEthernet library for Arduinos (Atmel AVR-s,Atmel SAM3X8E ARM Cortex-M3,STM32F series,ESP8266,Intel ARC32(Genuino101),Nordic nRF51(RFduino),Teensy boards,Realtek Ameba(RTL8195A,RTL8710)), ENC28j60 network chip compatible with Wiznet W5100 API
 
 Original UIPEthernet writed by Norbert Truchsess.
 
