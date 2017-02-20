@@ -1096,8 +1096,6 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
                    ((x)>> 8 & 0x0000FF00UL) | \
                    ((x)>>24 & 0x000000FFUL) )
 #   endif /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
-#else
-#error "htonl already defined!"
 #endif /* htonl */
 
 #ifndef ntohl
