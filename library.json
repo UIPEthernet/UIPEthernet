@@ -16,19 +16,14 @@
       "maintainer": true
     }
   ],
-  "dependencies":
-  {
-    "frameworks": "arduino, MBED"
-  },
   "version": "2.0.3",
-  "frameworks": "arduino, MBED",
-  "platforms": "atmelavr, atmelsam, espressif8266"
+  "frameworks": "arduino, mbed",
+  "platforms": "atmelavr, atmelsam, espressif8266",
   "export":
-    {
-    "include":
-      [
-        "UIPEthernet.h",
-        "utility/logging.h",
-      ]
-    }
+  {
+    "exclude": [
+      "hardware",
+      "tests"
+    ]
+  }
 }
