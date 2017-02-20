@@ -18,10 +18,17 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
-#include "mbed/WString.h"
-#include "mbed/itoa.h"
-#include "mbed/dtostrf.h"
+#if defined(__MBED__)
+  #include "mbed/WString.h"
+  #include "mbed/itoa.h"
+  #include "mbed/dtostrf.h"
+#endif
+
+#if defined(ARDUINO)
+  #include "WString.h"
+#endif
 
 /*********************************************/
 /*  Constructors                             */
@@ -745,3 +752,4 @@ float String::toFloat(void) const
     if (buffer) return float(atof(buffer));
     return 0;
 }
+#endif

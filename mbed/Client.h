@@ -18,13 +18,21 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 #ifndef client_h
-    #define client_h
+  #define client_h
+  #if defined(__MBED__)
+    #include "mbed/IPAddress.h"
+  #endif
+
+  #if defined(ARDUINO)
     #include "IPAddress.h"
+  #endif
 
 class   Client
 {
 public:
+    virtual ~Client(){};
     virtual int         connect(IPAddress ip, uint16_t port) = 0;
     virtual int         connect(const char* host, uint16_t port) = 0;
     virtual size_t      write(uint8_t) = 0;
@@ -40,4 +48,5 @@ public:
 protected:
     uint8_t*    rawIPAddress(IPAddress& addr)   { return addr.raw_address(); };
 };
+#endif
 #endif

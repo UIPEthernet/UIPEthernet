@@ -18,12 +18,16 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
+
 #ifndef server_h
     #define server_h
 
 class   Server
 {
 public:
+    virtual ~Server(){};
     virtual void    begin(void) = 0;
 };
+#endif
 #endif

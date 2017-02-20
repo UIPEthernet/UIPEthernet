@@ -15,6 +15,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
 #ifndef _ITOA_
 #define _ITOA_
@@ -40,3 +41,4 @@ extern char* ultoa( unsigned long value, char *string, int radix ) ;
 #endif // __cplusplus
 
 #endif // _ITOA_
+#endif

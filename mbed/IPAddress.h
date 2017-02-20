@@ -16,13 +16,21 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
 #ifndef IPAddress_h
 #define IPAddress_h
 
 #include <stdint.h>
-#include "Printable.h"
-#include "WString.h"
+#if defined(__MBED__)
+  #include "mbed/Printable.h"
+  #include "mbed/WString.h"
+#endif
+
+#if defined(ARDUINO)
+  #include "Printable.h"
+  #include "WString.h"
+#endif
 
 // A class to make it easier to handle and pass around IP addresses
 
@@ -41,6 +49,7 @@ private:
 
 public:
     // Constructors
+    virtual ~IPAddress(){};
     IPAddress();
     IPAddress(uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet);
     IPAddress(uint32_t address);
@@ -75,4 +84,5 @@ public:
 
 const IPAddress INADDR_NONE(0,0,0,0);
 
+#endif
 #endif

@@ -16,11 +16,14 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
 #ifndef Print_h
 #define Print_h
 
-#include <mbed.h>
+#if defined(__MBED__)
+  #include <mbed.h>
+#endif
 #ifdef YOTTA_CFG
   #include "core-util/FunctionPointer.h"
   using namespace mbed;
@@ -30,8 +33,14 @@
 #include <inttypes.h>
 #include <stdio.h> // for size_t
 
-#include "mbed/WString.h"
-#include "mbed/Printable.h"
+#if defined(__MBED__)
+  #include "mbed/WString.h"
+  #include "mbed/Printable.h"
+#endif
+#if defined(ARDUINO)
+  #include "WString.h"
+  #include "Printable.h"
+#endif
 
 #define DEC 10
 #define HEX 16
@@ -88,4 +97,5 @@ class Print
     size_t println(void);
 };
 
+#endif
 #endif

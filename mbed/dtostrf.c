@@ -17,6 +17,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
 #include <stdio.h>
 
@@ -26,3 +27,4 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) {
   sprintf(sout, fmt, val);
   return sout;
 }
+#endif

@@ -18,6 +18,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
 #ifndef String_class_h
 #define String_class_h
@@ -26,7 +27,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <mbed/pgmspace.h>
+
+#if defined(__MBED__)
+  #include <mbed/pgmspace.h>
+#endif
+
+#if defined(ARDUINO)
+  #include <avr/pgmspace.h>
+#endif
 
 // When compiling programs with this class, the following gcc parameters
 // dramatically increase performance and memory (RAM) efficiency, typically
@@ -224,3 +232,4 @@ public:
 
 #endif  // __cplusplus
 #endif  // String_class_h
+#endif

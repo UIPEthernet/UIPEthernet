@@ -31,6 +31,8 @@
  *
  * bjoern@cs.stanford.edu 12/30/2008
  */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
+
 #ifndef udp_h
     #define udp_h
 
@@ -101,4 +103,5 @@ public:
 protected:
     uint8_t*    rawIPAddress(IPAddress& addr)   { return addr.raw_address(); };
 };
+#endif
 #endif

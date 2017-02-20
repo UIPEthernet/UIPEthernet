@@ -19,14 +19,20 @@
  Modified 23 November 2006 by David A. Mellis
  Modified 03 August 2015 by Chuck Todd
  */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-//#include "Arduino.h"
+#if defined(ARDUINO)
+  #include "Arduino.h"
+  #include "Print.h"
+#endif
 
-#include "Print.h"
+#if defined(__MBED__)
+  #include "mbed/Print.h"
+#endif
 
 // Public Methods //////////////////////////////////////////////////////////////
 
@@ -258,3 +264,4 @@ size_t Print::printFloat(double number, uint8_t digits)
   
   return n;
 }
+#endif

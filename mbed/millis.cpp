@@ -16,6 +16,9 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
+
+#if defined(__MBED__)
 #include "millis.h"
 #include <mbed.h>
 
@@ -50,4 +53,5 @@ extern "C" void SysTick_Handler(void) {
 extern "C" unsigned long millis(void) {
     return _millis;
 }
-
+#endif
+#endif

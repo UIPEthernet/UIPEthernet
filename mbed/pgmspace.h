@@ -1,3 +1,5 @@
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
+
 #ifndef __PGMSPACE_H_
 #define __PGMSPACE_H_ 1
 
@@ -41,4 +43,5 @@ typedef uint32_t prog_uint32_t;
 #define pgm_read_dword_far(addr) pgm_read_dword(addr)
 #define pgm_read_float_far(addr) pgm_read_float(addr)
 
+#endif
 #endif

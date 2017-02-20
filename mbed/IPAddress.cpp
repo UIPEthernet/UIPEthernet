@@ -16,6 +16,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
 #if defined(ARDUINO)
   #include <Arduino.h>
@@ -120,3 +121,4 @@ size_t IPAddress::printTo(Print& p) const
     n += p.print(_address.bytes[3], DEC);
     return n;
 }
+#endif
