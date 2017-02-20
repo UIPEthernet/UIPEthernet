@@ -35,4 +35,6 @@ https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60
 - Added support for Intel ARC32(Genuino101), Nordic nRF51(RFduino), Teensy boards
 - Issue#4 corrected
 - Added support for Realtek Ameba(RTL8195A,RTL8710)
+- Added support Eclipse with arduino plugin
+- Added direct broadcast support
 
