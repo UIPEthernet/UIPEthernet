@@ -909,10 +909,10 @@ uip_process(u8_t flag)
        UDP packet, which may be destined to us. */
 #if UIP_BROADCAST
     DEBUG_PRINTF("UDP IP checksum 0x%04x\n", uip_ipchksum());
-    if(BUF->proto == UIP_PROTO_UDP && (
-       uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr)
-       || uip_ipaddr_maskcmp(BUF->destipaddr, uip_hostaddr, uip_netmask)
-       )
+     if(BUF->proto == UIP_PROTO_UDP && (
+        uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr) // Limited broadcast
+        || ((BUF->destipaddr[0]==(uip_hostaddr[0] | (~uip_netmask[0]))) && (BUF->destipaddr[1]==(uip_hostaddr[1] | (~uip_netmask[1])))) // Direct broadcast
+        )
        /*&&
 	 uip_ipchksum() == 0xffff*/) {
       goto udp_input;
