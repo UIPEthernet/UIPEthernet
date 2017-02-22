@@ -38,6 +38,9 @@
      #if !defined(STM32F3) && !defined(__STM32F4__)
        #include <SPI.h>
        extern SPIClass SPI;
+     //#elif defined(ARDUINO_ARCH_AMEBA)
+       //SPIClass SPI((void *)(&spi_obj), 11, 12, 13, 10);
+       //SPI _spi(SPI_MOSI,SPI_MISO,SPI_SCK,ENC28J60_CONTROL_CS);
      #else
        #include "HardwareSPI.h"
        extern HardwareSPI SPI(1);
