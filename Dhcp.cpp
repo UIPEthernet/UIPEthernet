@@ -17,17 +17,15 @@
 #include "utility/logging.h"
 #include "utility/uip.h"
 
-int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
+int DhcpClass::beginWithDHCP(uint8_t *mac)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::beginWithDHCP(uint8_t *mac) DEBUG_V1:Function started"));
     #endif
     _dhcpLeaseTime=0;
     _dhcpT1=0;
     _dhcpT2=0;
     _lastCheck=0;
-    _timeout = timeout;
-    _responseTimeout = responseTimeout;
 
     // zero out _dhcpMacAddr
     memset(_dhcpMacAddr, 0, 6); 
@@ -40,16 +38,16 @@ int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long 
 
 void DhcpClass::reset_DHCP_lease(void){
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::reset_DHCP_lease(void) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::reset_DHCP_lease(void) DEBUG_V1:Function started"));
     #endif
-    // zero out _dhcpSubnetMask, _dhcpGatewayIp, _dhcpLocalIp, _dhcpDhcpServerIp, _dhcpDnsServerIp
-    memset(_dhcpLocalIp, 0, 20);
+    // zero out _dhcpipv4struct.SubnetMask, _dhcpipv4struct.GatewayIp, _dhcpipv4struct.LocalIp, _dhcpipv4struct.DhcpServerIp, _dhcpipv4struct.DnsServerIp
+    memset(&_dhcpipv4struct, 0, sizeof(_dhcpipv4struct));
 }
 
 //return:0 on error, 1 if request is sent and response is received
 int DhcpClass::request_DHCP_lease(void){
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:Function started"));
     #endif
     
     uint8_t messageType = 0;
@@ -83,7 +81,7 @@ int DhcpClass::request_DHCP_lease(void){
         if(_dhcp_state == STATE_DHCP_START)
         {
             #if ACTLOGLEVEL>=LOG_DEBUG_V1
-              LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_START -> send_DHCP_MESSAGE DHCP_DISCOVER"));
+              LogObject.uart_send_strln(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_START -> send_DHCP_MESSAGE DHCP_DISCOVER"));
             #endif
             _dhcpTransactionId++;
             
@@ -92,7 +90,7 @@ int DhcpClass::request_DHCP_lease(void){
         }
         else if(_dhcp_state == STATE_DHCP_REREQUEST){
             #if ACTLOGLEVEL>=LOG_DEBUG_V1
-              LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_REREQUEST -> send_DHCP_MESSAGE DHCP_REQUEST"));
+              LogObject.uart_send_strln(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_REREQUEST -> send_DHCP_MESSAGE DHCP_REQUEST"));
             #endif
             _dhcpTransactionId++;
             send_DHCP_MESSAGE(DHCP_REQUEST, ((millis() - startTime)/1000));
@@ -101,11 +99,11 @@ int DhcpClass::request_DHCP_lease(void){
         else if(_dhcp_state == STATE_DHCP_DISCOVER)
         {
             uint32_t respId;
-            messageType = parseDHCPResponse(_responseTimeout, respId);
+            messageType = parseDHCPResponse(respId);
             if(messageType == DHCP_OFFER)
             {
                 #if ACTLOGLEVEL>=LOG_DEBUG_V1
-                  LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_DISCOVER,messageType=DHCP_OFFER -> send_DHCP_MESSAGE DHCP_REQUEST"));
+                  LogObject.uart_send_strln(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_DISCOVER,messageType=DHCP_OFFER -> send_DHCP_MESSAGE DHCP_REQUEST"));
                 #endif
                 // We'll use the transaction ID that the offer came with,
                 // rather than the one we were up to
@@ -117,11 +115,11 @@ int DhcpClass::request_DHCP_lease(void){
         else if(_dhcp_state == STATE_DHCP_REQUEST)
         {
             uint32_t respId;
-            messageType = parseDHCPResponse(_responseTimeout, respId);
+            messageType = parseDHCPResponse(respId);
             if(messageType == DHCP_ACK)
             {
                 #if ACTLOGLEVEL>=LOG_DEBUG_V1
-                  LogObject.uart_send_str(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_REQUEST,messageType=DHCP_ACK"));
+                  LogObject.uart_send_strln(F("DhcpClass::request_DHCP_lease(void) DEBUG_V1:dhcp_state=STATE_DHCP_REQUEST,messageType=DHCP_ACK"));
                 #endif
                 _dhcp_state = STATE_DHCP_LEASED;
                 result = 1;
@@ -151,8 +149,11 @@ int DhcpClass::request_DHCP_lease(void){
             _dhcp_state = STATE_DHCP_START;
         }
         
-        if(result != 1 && ((millis() - startTime) > _timeout))
+        if(result != 1 && ((millis() - startTime) > DHCP_TIMEOUT))
             break;
+    #if defined(ESP8266)
+       wdt_reset();
+    #endif
     }
     
     // We're done with the socket now
@@ -165,14 +166,14 @@ int DhcpClass::request_DHCP_lease(void){
 void DhcpClass::presend_DHCP(void)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::presend_DHCP(void) DEBUG_V1:Function started (Empty function)"));
+      LogObject.uart_send_strln(F("DhcpClass::presend_DHCP(void) DEBUG_V1:Function started (Empty function)"));
     #endif
 }
 
 void DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed) DEBUG_V1:Function started"));
     #endif
     uint8_t buffer[32];
     memset(buffer, 0, 32);
@@ -258,17 +259,17 @@ void DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed)
     {
         buffer[0] = dhcpRequestedIPaddr;
         buffer[1] = 0x04;
-        buffer[2] = _dhcpLocalIp[0];
-        buffer[3] = _dhcpLocalIp[1];
-        buffer[4] = _dhcpLocalIp[2];
-        buffer[5] = _dhcpLocalIp[3];
+        buffer[2] = _dhcpipv4struct.LocalIp[0];
+        buffer[3] = _dhcpipv4struct.LocalIp[1];
+        buffer[4] = _dhcpipv4struct.LocalIp[2];
+        buffer[5] = _dhcpipv4struct.LocalIp[3];
 
         buffer[6] = dhcpServerIdentifier;
         buffer[7] = 0x04;
-        buffer[8] = _dhcpDhcpServerIp[0];
-        buffer[9] = _dhcpDhcpServerIp[1];
-        buffer[10] = _dhcpDhcpServerIp[2];
-        buffer[11] = _dhcpDhcpServerIp[3];
+        buffer[8] = _dhcpipv4struct.DhcpServerIp[0];
+        buffer[9] = _dhcpipv4struct.DhcpServerIp[1];
+        buffer[10] = _dhcpipv4struct.DhcpServerIp[2];
+        buffer[11] = _dhcpipv4struct.DhcpServerIp[3];
 
         //put data in W5100 transmit buffer
         _dhcpUdpSocket.write(buffer, 12);
@@ -290,10 +291,10 @@ void DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed)
     _dhcpUdpSocket.endPacket();
 }
 
-uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId)
+uint8_t DhcpClass::parseDHCPResponse(uint32_t& transactionId)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::parseDHCPResponse(uint32_t& transactionId) DEBUG_V1:Function started"));
     #endif
     uint8_t type = 0;
     uint8_t opt_len = 0;
@@ -302,7 +303,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
 
     while(_dhcpUdpSocket.parsePacket() <= 0)
     {
-        if((millis() - startTime) > responseTimeout)
+        if((millis() - startTime) > DHCP_RESPONSE_TIMEOUT)
         {
             return 255;
         }
@@ -322,7 +323,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
             return 0;
         }
 
-        memcpy(_dhcpLocalIp, fixedMsg.yiaddr, 4);
+        memcpy(_dhcpipv4struct.LocalIp, fixedMsg.yiaddr, 4);
 
         // Skip to the option part
         // Doing this a byte at a time so we don't have to put a big buffer
@@ -349,12 +350,12 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                 
                 case subnetMask :
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read((char*)_dhcpSubnetMask, 4);
+                    _dhcpUdpSocket.read((char*)_dhcpipv4struct.SubnetMask, 4);
                     break;
                 
                 case routersOnSubnet :
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read((char*)_dhcpGatewayIp, 4);
+                    _dhcpUdpSocket.read((char*)_dhcpipv4struct.GatewayIp, 4);
                     for (int i = 0; i < opt_len-4; i++)
                     {
                         _dhcpUdpSocket.read();
@@ -363,7 +364,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                 
                 case dns :
                     opt_len = _dhcpUdpSocket.read();
-                    _dhcpUdpSocket.read((char*)_dhcpDnsServerIp, 4);
+                    _dhcpUdpSocket.read((char*)_dhcpipv4struct.DnsServerIp, 4);
                     for (int i = 0; i < opt_len-4; i++)
                     {
                         _dhcpUdpSocket.read();
@@ -372,10 +373,10 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                 
                 case dhcpServerIdentifier :
                     opt_len = _dhcpUdpSocket.read();
-                    if( IPAddress(_dhcpDhcpServerIp) == IPAddress(0,0,0,0) ||
-                        IPAddress(_dhcpDhcpServerIp) == _dhcpUdpSocket.remoteIP() )
+                    if( IPAddress(_dhcpipv4struct.DhcpServerIp) == IPAddress(0,0,0,0) ||
+                        IPAddress(_dhcpipv4struct.DhcpServerIp) == _dhcpUdpSocket.remoteIP() )
                     {
-                        _dhcpUdpSocket.read((char*)_dhcpDhcpServerIp, sizeof(_dhcpDhcpServerIp));
+                        _dhcpUdpSocket.read((char*)_dhcpipv4struct.DhcpServerIp, sizeof(_dhcpipv4struct.DhcpServerIp));
                     }
                     else
                     {
@@ -435,7 +436,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
 */
 int DhcpClass::checkLease(void){
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::checkLease(void) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::checkLease(void) DEBUG_V1:Function started"));
     #endif
 
     //this uses a signed / unsigned trick to deal with millis overflow
@@ -493,46 +494,46 @@ int DhcpClass::checkLease(void){
 IPAddress DhcpClass::getLocalIp(void)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::getLocalIp(void) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::getLocalIp(void) DEBUG_V1:Function started"));
     #endif
-    return IPAddress(_dhcpLocalIp);
+    return IPAddress(_dhcpipv4struct.LocalIp);
 }
 
 IPAddress DhcpClass::getSubnetMask(void)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::getSubnetMask(void) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::getSubnetMask(void) DEBUG_V1:Function started"));
     #endif
-    return IPAddress(_dhcpSubnetMask);
+    return IPAddress(_dhcpipv4struct.SubnetMask);
 }
 
 IPAddress DhcpClass::getGatewayIp(void)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::getGatewayIp(void) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::getGatewayIp(void) DEBUG_V1:Function started"));
     #endif
-    return IPAddress(_dhcpGatewayIp);
+    return IPAddress(_dhcpipv4struct.GatewayIp);
 }
 
 IPAddress DhcpClass::getDhcpServerIp(void)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::getDhcpServerIp(void) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::getDhcpServerIp(void) DEBUG_V1:Function started"));
     #endif
-    return IPAddress(_dhcpDhcpServerIp);
+    return IPAddress(_dhcpipv4struct.DhcpServerIp);
 }
 
 IPAddress DhcpClass::getDnsServerIp(void)
 {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::getDnsServerIp(void) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::getDnsServerIp(void) DEBUG_V1:Function started"));
     #endif
-    return IPAddress(_dhcpDnsServerIp);
+    return IPAddress(_dhcpipv4struct.DnsServerIp);
 }
 
 void DhcpClass::printByte(char * buf, uint8_t n ) {
     #if ACTLOGLEVEL>=LOG_DEBUG_V1
-      LogObject.uart_send_str(F("DhcpClass::printByte(char * buf, uint8_t n ) DEBUG_V1:Function started"));
+      LogObject.uart_send_strln(F("DhcpClass::printByte(char * buf, uint8_t n ) DEBUG_V1:Function started"));
     #endif
   char *str = &buf[1];
   buf[0]='0';

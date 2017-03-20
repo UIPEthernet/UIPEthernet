@@ -46,6 +46,8 @@
 
 #define HOST_NAME "ENC28J"
 #define DEFAULT_LEASE	(900) //default lease time in seconds
+#define DHCP_TIMEOUT            60000
+#define DHCP_RESPONSE_TIMEOUT   4000
 
 #define DHCP_CHECK_NONE         (0)
 #define DHCP_CHECK_RENEW_FAIL   (1)
@@ -139,23 +141,26 @@ typedef struct _RIP_MSG_FIXED
 	uint8_t  chaddr[6];
 }RIP_MSG_FIXED;
 
+typedef struct
+{
+  uint8_t  LocalIp[4];
+  uint8_t  SubnetMask[4];
+  uint8_t  GatewayIp[4];
+  uint8_t  DhcpServerIp[4];
+  uint8_t  DnsServerIp[4];
+} TIPV4Struct;
+
 class DhcpClass {
 private:
   uint32_t _dhcpInitialTransactionId;
   uint32_t _dhcpTransactionId;
   uint8_t  _dhcpMacAddr[6];
-  uint8_t  _dhcpLocalIp[4];
-  uint8_t  _dhcpSubnetMask[4];
-  uint8_t  _dhcpGatewayIp[4];
-  uint8_t  _dhcpDhcpServerIp[4];
-  uint8_t  _dhcpDnsServerIp[4];
+  TIPV4Struct _dhcpipv4struct;
   uint32_t _dhcpLeaseTime;
   uint32_t _dhcpT1, _dhcpT2;
   signed long _renewInSec;
   signed long _rebindInSec;
   signed long _lastCheck;
-  unsigned long _timeout;
-  unsigned long _responseTimeout;
   unsigned long _secTimeout;
   uint8_t _dhcp_state;
   UIPUDP _dhcpUdpSocket;
@@ -166,7 +171,7 @@ private:
   void send_DHCP_MESSAGE(uint8_t, uint16_t);
   void printByte(char *, uint8_t);
   
-  uint8_t parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId);
+  uint8_t parseDHCPResponse(uint32_t& transactionId);
 public:
   IPAddress getLocalIp(void);
   IPAddress getSubnetMask(void);
@@ -174,7 +179,7 @@ public:
   IPAddress getDhcpServerIp(void);
   IPAddress getDnsServerIp(void);
   
-  int beginWithDHCP(uint8_t *, unsigned long timeout = 60000, unsigned long responseTimeout = 4000);
+  int beginWithDHCP(uint8_t *);
   int checkLease(void);
 };
 #endif
