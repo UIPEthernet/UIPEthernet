@@ -80,7 +80,8 @@
       #define ENC28J60_CONTROL_CS     SS //PC_0 A5 10
    #elif defined(ARDUINO_ARCH_SAM)
       // Arduino Due (ARDUINO_ARCH_SAM) BOARD_SPI_DEFAULT_SS (SS3) defined to pin 78
-      #define ENC28J60_CONTROL_CS     BOARD_SPI_DEFAULT_SS
+      //#define ENC28J60_CONTROL_CS     BOARD_SPI_DEFAULT_SS
+      #define ENC28J60_CONTROL_CS     BOARD_SPI_SS0
    #elif defined(__ARDUINO_ARC__) //Intel ARC32 Genuino 101
       #define ENC28J60_CONTROL_CS     SS
    #elif defined(__RFduino__) //RFduino
