@@ -35,6 +35,9 @@ https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60
 - Added support for Intel ARC32(Genuino101), Nordic nRF51(RFduino), Teensy boards
 - Issue#4 corrected
 - Added support for Realtek Ameba(RTL8195A,RTL8710)
-- Added support Eclipse with arduino plugin
 - Added direct broadcast support
-
+- Issue#5 corrected: You can save 5K flash memory with disable UDP support.
+- Issue#6 corrected: Added support Eclipse with arduino plugin
+- Issue#8, and Issue#9 corrected: Modified DHCP code: Moved timeouts define to dhcp.h
+- Issue#11 corrected: Changed ENC28J60_CONTROL_CS pin to 10 on Arduino Due
+- New release:2.0.4
