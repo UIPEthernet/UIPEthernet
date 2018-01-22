@@ -86,6 +86,8 @@
       #define ENC28J60_CONTROL_CS     SS
    #elif defined(__RFduino__) //RFduino
       #define ENC28J60_CONTROL_CS     SS
+   #elif defined(ARDUINO_ARCH_STM32) // STM32duino core
+      #define ENC28J60_CONTROL_CS     SS
    #elif defined(STM32_MCU_SERIES) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       #if defined(BOARD_SPI1_NSS_PIN)
          #define ENC28J60_CONTROL_CS     BOARD_SPI1_NSS_PIN
@@ -117,6 +119,8 @@
       #define SPI_MOSI MOSI
    #elif defined(__RFduino__) //RFduino
       #define SPI_MOSI MOSI
+   #elif defined(ARDUINO_ARCH_STM32) // STM32duino core
+      #define SPI_MOSI MOSI
    #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       #if defined(BOARD_SPI1_MOSI_PIN)
          #define SPI_MOSI BOARD_SPI1_MOSI_PIN
@@ -142,6 +146,8 @@
       #define SPI_MISO MISO
    #elif defined(__RFduino__) //RFduino
       #define SPI_MISO MISO
+   #elif defined(ARDUINO_ARCH_STM32) // STM32duino core
+      #define SPI_MISO MISO
    #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       #if defined(BOARD_SPI1_MISO_PIN)
          #define SPI_MISO BOARD_SPI1_MISO_PIN
@@ -166,6 +172,8 @@
       #define SPI_SCK SCK
    #elif defined(__RFduino__) //RFduino
       #define SPI_SCK SCK
+   #elif defined(ARDUINO_ARCH_STM32) // STM32duino core
+      #define SPI_SCK SCK
    #elif defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
       #if defined(BOARD_SPI1_SCK_PIN)
          #define SPI_SCK BOARD_SPI1_SCK_PIN
@@ -180,7 +188,7 @@
    #error "Not defined SPI_SCK!"
 #endif
 
-#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(__ARDUINO_ARC__) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(ESP8266) || defined(ARDUINO_ARCH_AMEBA) || defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__RFduino__)
+#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(__ARDUINO_ARC__) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(ESP8266) || defined(ARDUINO_ARCH_AMEBA) || defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__RFduino__) || defined(ARDUINO_ARCH_STM32)
    #if defined(ARDUINO) && defined(STM32F3)
       #include "HardwareSPI.h"
    #else
