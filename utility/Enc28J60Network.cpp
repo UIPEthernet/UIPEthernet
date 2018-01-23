@@ -35,7 +35,9 @@
 
 #if ENC28J60_USE_SPILIB
    #if defined(ARDUINO)
-     #if !defined(STM32F3) && !defined(__STM32F4__)
+     #if defined(STM32F2)
+       #include <SPI.h>
+     #elif !defined(STM32F3) && !defined(__STM32F4__)
        #include <SPI.h>
        extern SPIClass SPI;
      //#elif defined(ARDUINO_ARCH_AMEBA)
@@ -209,7 +211,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
     #endif
     }
   #if ACTLOGLEVEL>=LOG_ERR
-    if (timeout==0) {LogObject.uart_send_strln(F("ENC28J60::init ERROR:TIMEOUT !!"));}
+    if (timeout==0) {LogObject.uart_send_strln(F("ENC28J60::init ERROR:TIMEOUT !!!"));}
   #endif
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("ENC28J60::init DEBUG_V3:After readOp(ENC28J60_READ_CTRL_REG, ESTAT)"));
@@ -331,7 +333,7 @@ Enc28J60Network::receivePacket(void)
   #if ACTLOGLEVEL>=LOG_ERR
     if (erevid==0)
       {
-      LogObject.uart_send_strln(F("Enc28J60Network::receivePacket(void) ERROR:ENC28j50 Device not found !! Bypass receivePacket function !!"));
+      LogObject.uart_send_strln(F("Enc28J60Network::receivePacket(void) ERROR:ENC28j50 Device not found !!! Bypass receivePacket function !!!"));
       }
   #endif
   uint8_t epktcnt=readReg(EPKTCNT);
@@ -424,7 +426,7 @@ Enc28J60Network::sendPacket(memhandle handle)
   if (erevid==0)
     {
     #if ACTLOGLEVEL>=LOG_ERR
-      LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) ERROR:ENC28j50 Device not found !! Bypass sendPacket function !!"));
+      LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) ERROR:ENC28j50 Device not found !!! Bypass sendPacket function !!!"));
     #endif
     return;
     }
@@ -502,7 +504,7 @@ Enc28J60Network::sendPacket(memhandle handle)
   if (retry == 0)
     {
     #if ACTLOGLEVEL>=LOG_ERROR
-      LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) ERROR:COLLISION !!"));
+      LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) ERROR:COLLISION !!!"));
     #endif
     return;
     }
@@ -1039,7 +1041,7 @@ Enc28J60Network::phyWrite(uint8_t address, uint16_t data)
     if (--timeout == 0)
       {
       #if ACTLOGLEVEL>=LOG_ERR
-         LogObject.uart_send_strln(F("Enc28J60Network::phyWrite ERROR:TIMEOUT !!"));
+         LogObject.uart_send_strln(F("Enc28J60Network::phyWrite ERROR:TIMEOUT !!!"));
       #endif
       return;
       }
@@ -1065,7 +1067,7 @@ Enc28J60Network::phyRead(uint8_t address)
     if (--timeout == 0)
       {
       #if ACTLOGLEVEL>=LOG_ERR
-         LogObject.uart_send_strln(F("Enc28J60Network::phyRead ERROR:TIMEOUT !!"));
+         LogObject.uart_send_strln(F("Enc28J60Network::phyRead ERROR:TIMEOUT !!!"));
       #endif
       return 0;
       }

@@ -61,13 +61,44 @@
 #define __UIPOPT_H__
 
 #ifndef UIP_LITTLE_ENDIAN
-#define UIP_LITTLE_ENDIAN  3412
+  #if defined(LITTLE_ENDIAN)
+    #define UIP_LITTLE_ENDIAN LITTLE_ENDIAN
+  #elif defined(__ORDER_LITTLE_ENDIAN__)
+    #define UIP_LITTLE_ENDIAN __ORDER_LITTLE_ENDIAN__
+  #else
+    #define UIP_LITTLE_ENDIAN 1234
+  #endif
 #endif /* UIP_LITTLE_ENDIAN */
 #ifndef UIP_BIG_ENDIAN
-#define UIP_BIG_ENDIAN     1234
+  #if defined(BIG_ENDIAN)
+    #define UIP_BIG_ENDIAN BIG_ENDIAN
+  #elif defined(__ORDER_BIG_ENDIAN__)
+    #define UIP_BIG_ENDIAN __ORDER_BIG_ENDIAN__
+  #else
+    #define UIP_BIG_ENDIAN 4321
+  #endif
 #endif /* UIP_BIG_ENDIAN */
+#ifndef UIP_PDP_ENDIAN
+  #if defined(PDP_ENDIAN)
+    #define UIP_PDP_ENDIAN PDP_ENDIAN
+  #elif defined(__ORDER_PDP_ENDIAN__)
+    #define UIP_PDP_ENDIAN __ORDER_PDP_ENDIAN__
+  #else
+    #define UIP_PDP_ENDIAN 3412
+  #endif
+#endif /* UIP_PDP_ENDIAN */
 
 #include "uip-conf.h"
+
+#if defined(FORCE_UIP_CONF_BYTE_ORDER)
+  #warning "You forced 'FORCE_UIP_CONF_BYTE_ORDER' in 'utility/uip-conf.h'."
+  #define UIP_CONF_BYTE_ORDER      FORCE_UIP_CONF_BYTE_ORDER
+#elif defined(__BYTE_ORDER__)
+  #warning "Endianness configured automaticaly."
+  #define UIP_CONF_BYTE_ORDER      __BYTE_ORDER__
+#else
+  #error "You must set FORCE_UIP_CONF_BYTE_ORDER in 'utility/uip-conf.h'."
+#endif
 
 /*------------------------------------------------------------------------------*/
 
