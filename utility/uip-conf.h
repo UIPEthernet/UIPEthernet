@@ -118,12 +118,12 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_RECEIVE_WINDOW 512
 
 /**
- * CPU byte order.
+ * You can force CPU byte order.
  *
  * \hideinitializer
  */
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
 
+//#define FORCE_UIP_CONF_BYTE_ORDER	LITTLE_ENDIAN
 /**
  * Logging on or off
  *
