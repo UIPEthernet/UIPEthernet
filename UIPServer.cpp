@@ -20,7 +20,7 @@
 #include "UIPServer.h"
 #include "utility/logging.h"
 extern "C" {
-  #include "utility/uip-conf.h"
+  #include "utility/uipopt.h"
 }
 
 UIPServer::UIPServer(uint16_t port) : _port(htons(port))

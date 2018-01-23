@@ -33,7 +33,7 @@
   #endif
 #endif
 #include "utility/Enc28J60Network.h"
-#include "utility/uip-conf.h"
+#include "utility/uipopt.h"
 #include "Dhcp.h"
 #if UIP_UDP
   #include "UIPUdp.h"

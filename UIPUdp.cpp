@@ -23,7 +23,7 @@
 #include "utility/logging.h"
 
 extern "C" {
-#include "utility/uip-conf.h"
+#include "utility/uipopt.h"
 #include "utility/uip.h"
 #include "utility/uip_arp.h"
 }
