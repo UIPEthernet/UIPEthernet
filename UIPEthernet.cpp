@@ -205,7 +205,7 @@ UIPEthernetClass::tick()
 if (Enc28J60Network::geterevid()==0)
    {
    #if ACTLOGLEVEL>=LOG_ERR
-     LogObject.uart_send_strln(F("UIPEthernetClass::tick() ERROR:EREVID=0 -> Not found ENC28j60 device !!! Function ended !!!"));
+     LogObject.uart_send_strln(F("UIPEthernetClass::tick() ERROR:EREVID=0 -> Not found ENC28j60 device !! Function ended !!"));
    #endif
    return;
    }
