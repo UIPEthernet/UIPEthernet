@@ -61,6 +61,8 @@ extern "C" {
   #include <avr/io.h>
   #elif defined(ARDUINO_ARCH_SAM)
   // SAM-specific code
+  #elif defined(ARDUINO_ARCH_SAMD)
+  // SAMD-specific code
   #else
   // generic, non-platform specific code
   #endif
@@ -84,7 +86,7 @@ extern "C" {
 //
 #if defined(ARDUINO_ARCH_AVR)
 #define waitspi() while(!(SPSR&(1<<SPIF)))
-#elif defined(ARDUINO_ARCH_SAM)
+#elif defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD)
 #if ENC28J60_CONTROL_CS==BOARD_SPI_SS0 or ENC28J60_CONTROL_CS==BOARD_SPI_SS1 or ENC28J60_CONTROL_CS==BOARD_SPI_SS2 or ENC28J60_CONTROL_CS==BOARD_SPI_SS3
 #define ENC28J60_USE_SPILIB_EXT 1
 #endif
@@ -147,6 +149,10 @@ void Enc28J60Network::init(uint8_t* macaddr)
   #elif defined(ARDUINO_ARCH_SAM)
     // SAM-specific code
     SPI.setClockDivider(10); //defaults to 21 which results in aprox. 4MHZ. A 10 should result in a little more than 8MHZ.
+  #elif defined(ARDUINO_ARCH_SAMD)
+    // SAMD-specific code
+    // Should we set clock divider?
+    SPI.setClockDivider(10);
   #elif defined(__STM32F1__) || defined(__STM32F3__)
     // generic, non-platform specific code
     #define USE_STM32F1_DMAC 1 //on STM32
