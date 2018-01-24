@@ -176,7 +176,8 @@ void Enc28J60Network::init(uint8_t* macaddr)
   pinMode(SPI_SCK, OUTPUT);
   pinMode(SPI_MISO, INPUT);
   //Hardware SS must be configured as OUTPUT to enable SPI-master (regardless of which pin is configured as ENC28J60_CONTROL_CS)
-  //pinMode(ENC28J60_CONTROL_CS, OUTPUT);
+  pinMode(SS, OUTPUT);
+  digitalWrite(SS,HIGH);
 
   digitalWrite(SPI_MOSI, LOW);
   digitalWrite(SPI_SCK, LOW);
