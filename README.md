@@ -48,3 +48,5 @@ https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60
 - Arduino Mega2560 upload error (3 !!!) corrected.
 - Added setup SS pin to output.
 - New release:2.0.5
+
+- Added support ESP32 and SAMD
