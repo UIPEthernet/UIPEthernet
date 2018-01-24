@@ -41,3 +41,9 @@ https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60
 - Issue#8, and Issue#9 corrected: Modified DHCP code: Moved timeouts define to dhcp.h
 - Issue#11 corrected: Changed ENC28J60_CONTROL_CS pin to 10 on Arduino Due
 - New release:2.0.4
+
+- Added support for Arduino_Core_STM32.
+- Endianness configuration/detection changed.
+- Added support for adafruit wiced feather.
+- Arduino Mega2560 upload error (3 !!!) corrected.
+- Added setup SS pin to output.
