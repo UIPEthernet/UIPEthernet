@@ -73,9 +73,15 @@
 #if !defined(ENC28J60_CONTROL_CS)
    #if defined(__AVR__) || defined(ESP8266) || defined(__RFduino__)
       // Arduino Uno (__AVR__) SS defined to pin 10
+      // Arduino Leonardo (ARDUINO_AVR_LEONARDO) SS defined to LED_BUILTIN_RX (17)
       // Arduino Mega(__AVR_ATmega2560__) SS defined to pin 53
       // ESP8266 (ESP8266) SS defined to pin 15
-      #define ENC28J60_CONTROL_CS     SS
+      #if defined(ARDUINO_AVR_LEONARDO)
+        #define ENC28J60_CONTROL_CS     PIN_A10
+        #warning "Use LEONARDO borad PIN_A10 for ENC28J60_CONTROL_CS. You can configure in 'utility/Enc28J60Network.h'."
+      #else
+        #define ENC28J60_CONTROL_CS     SS
+      #endif
    #elif defined(ARDUINO_ARCH_AMEBA) //Defined SS to pin 10
       #define ENC28J60_CONTROL_CS     SS //PC_0 A5 10
    #elif defined(ARDUINO_ARCH_SAM)
@@ -104,7 +110,7 @@
    #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
       #define ENC28J60_CONTROL_CS     PIN_SPI_SS
    #endif
-   #if defined(ENC28J60_CONTROL_CS)
+   #if defined(ENC28J60_CONTROL_CS) && !defined(ARDUINO_AVR_LEONARDO)
       #warning "Not defined ENC28J60_CONTROL_CS. Use borad default SS pin setting. You can configure in 'utility/Enc28J60Network.h'."
    #endif
 #endif
