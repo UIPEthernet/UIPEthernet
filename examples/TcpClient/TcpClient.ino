@@ -28,7 +28,7 @@
 #include "utility/logging.h"
 
 EthernetClient client;
-signed long next;
+unsigned long next;
 
 #if defined(ARDUINO)
 void setup() {
