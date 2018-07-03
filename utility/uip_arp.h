@@ -45,6 +45,13 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
+ * Modification by Dimitar Kunchev: ARP table is not filled on every 
+ * received packet because it overflows when there is a lot of broadcast. 
+ * Instead when we send an ARP request we add zero MAC address (which 
+ * is supposedly invalid) and update it when we have a reply. We also
+ * save the entry when we receive an IP packet sent to us.
+ * This behaviour can be switched via UIP_CONF_ADD_ALL_BROADCAST_TO_ARP
+ * 
  * $Id: uip_arp.h,v 1.5 2006/06/11 21:46:39 adam Exp $
  *
  */
@@ -53,7 +60,6 @@
 #define __UIP_ARP_H__
 
 #include "uip.h"
-
 
 extern struct uip_eth_addr uip_ethaddr;
 
@@ -137,6 +143,12 @@ void uip_arp_timer(void);
                               uip_ethaddr.addr[3] = eaddr.addr[3];\
                               uip_ethaddr.addr[4] = eaddr.addr[4];\
                               uip_ethaddr.addr[5] = eaddr.addr[5];} while(0)
+
+/**
+ * Debug method - get a pointer to the arp table to arduino code 
+ * to be able to examine and print it
+ */
+// void * uip_debug_get_arp_table_ref(void);
 
 /** @} */
 /** @} */

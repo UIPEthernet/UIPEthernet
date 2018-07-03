@@ -461,6 +461,21 @@
 #endif /* UIP_CONF_BROADCAST */
 
 /**
+ * Switches how entries are added to the ARP table. The original UIP 
+ * implementation just adds all received packets. By default this is 
+ * turned off and entries are added only when we receive an ARP reply 
+ * or when we send out a packet.
+ * 
+ * \hideinitializer
+ *
+ */
+#ifndef UIP_CONF_ADD_ALL_BROADCAST_TO_ARP
+#define UIP_ADD_ALL_BROADCAST_TO_ARP 0
+#else
+#define UIP_ADD_ALL_BROADCAST_TO_ARP UIP_CONF_ADD_ALL_BROADCAST_TO_ARP
+#endif 
+
+/**
  * Print out a uIP log message.
  *
  * This function must be implemented by the module that uses uIP, and
