@@ -33,6 +33,8 @@
 #endif
 #include "logging.h"
 
+uint8_t ENC28J60ControlCS = ENC28J60_CONTROL_CS;
+
 #if ENC28J60_USE_SPILIB
    #if defined(ARDUINO)
      #if defined(STM32F2)
@@ -42,7 +44,7 @@
        extern SPIClass SPI;
      //#elif defined(ARDUINO_ARCH_AMEBA)
        //SPIClass SPI((void *)(&spi_obj), 11, 12, 13, 10);
-       //SPI _spi(SPI_MOSI,SPI_MISO,SPI_SCK,ENC28J60_CONTROL_CS);
+       //SPI _spi(SPI_MOSI,SPI_MISO,SPI_SCK,ENC28J60ControlCS);
      #else
        #include "HardwareSPI.h"
        extern HardwareSPI SPI(1);
@@ -50,7 +52,7 @@
    #endif
    #if defined(__MBED__)
      SPI _spi(SPI_MOSI,SPI_MISO,SPI_SCK);
-     DigitalOut _cs(ENC28J60_CONTROL_CS);
+     DigitalOut _cs(ENC28J60ControlCS);
      Serial LogObject(SERIAL_TX,SERIAL_RX);
    #endif
 #endif
@@ -72,9 +74,9 @@ extern "C" {
 
 #if defined(ARDUINO)
 	// set CS to 0 = active
-	#define CSACTIVE digitalWrite(ENC28J60_CONTROL_CS, LOW)
+	#define CSACTIVE digitalWrite(ENC28J60ControlCS, LOW)
 	// set CS to 1 = passive
-	#define CSPASSIVE digitalWrite(ENC28J60_CONTROL_CS, HIGH)
+	#define CSPASSIVE digitalWrite(ENC28J60ControlCS, HIGH)
 #endif
 #if defined(__MBED__)
    // set CS to 0 = active
@@ -86,10 +88,6 @@ extern "C" {
 //
 #if defined(ARDUINO_ARCH_AVR)
 #define waitspi() while(!(SPSR&(1<<SPIF)))
-#elif defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD)
-#if ENC28J60_CONTROL_CS==BOARD_SPI_SS0 or ENC28J60_CONTROL_CS==BOARD_SPI_SS1 or ENC28J60_CONTROL_CS==BOARD_SPI_SS2 or ENC28J60_CONTROL_CS==BOARD_SPI_SS3
-#define ENC28J60_USE_SPILIB_EXT 1
-#endif
 #endif
 
 uint16_t Enc28J60Network::nextPacketPtr;
@@ -114,7 +112,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
   // initialize I/O
   // ss as output:
   #if defined(ARDUINO)
-  	  pinMode(ENC28J60_CONTROL_CS, OUTPUT);
+  	  pinMode(ENC28J60ControlCS, OUTPUT);
   #endif
   #if defined(__MBED__)
   	 millis_start(); 
@@ -124,7 +122,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
 
   #if ACTLOGLEVEL>=LOG_DEBUG
     LogObject.uart_send_str(F("ENC28J60::init DEBUG:csPin = "));
-    LogObject.uart_send_decln(ENC28J60_CONTROL_CS);
+    LogObject.uart_send_decln(ENC28J60ControlCS);
     LogObject.uart_send_str(F("ENC28J60::init DEBUG:miso = "));
     LogObject.uart_send_decln(SPI_MISO);
     LogObject.uart_send_str(F("ENC28J60::init DEBUG:mosi = "));
@@ -181,7 +179,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
   pinMode(SPI_MOSI, OUTPUT);
   pinMode(SPI_SCK, OUTPUT);
   pinMode(SPI_MISO, INPUT);
-  //Hardware SS must be configured as OUTPUT to enable SPI-master (regardless of which pin is configured as ENC28J60_CONTROL_CS)
+  //Hardware SS must be configured as OUTPUT to enable SPI-master (regardless of which pin is configured as ENC28J60ControlCS)
   pinMode(SS, OUTPUT);
   digitalWrite(SS,HIGH);
 
