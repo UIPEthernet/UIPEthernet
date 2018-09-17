@@ -63,6 +63,10 @@
 
 #include <string.h>
 
+#if defined(__GNUC__)
+  #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 struct arp_hdr {
   struct uip_eth_hdr ethhdr;
   u16_t hwtype;

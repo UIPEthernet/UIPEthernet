@@ -89,6 +89,10 @@
 
 #include <string.h>
 
+#if defined(__GNUC__)
+  #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 /*---------------------------------------------------------------------------*/
 /* Variable definitions. */
 

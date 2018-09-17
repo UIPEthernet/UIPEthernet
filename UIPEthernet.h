@@ -20,6 +20,8 @@
 #ifndef UIPETHERNET_H
 #define UIPETHERNET_H
 
+//#define VERBOSE
+
 #include "ethernet_comp.h"
 #if defined(__MBED__)
   #include <mbed.h>

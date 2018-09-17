@@ -24,6 +24,9 @@
 #include "utility/logging.h"
 #include "utility/uip.h"
 
+#if defined(__GNUC__)
+  #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
 
 #define SOCKET_NONE	255
 // Various flags and header field values for a DNS message
@@ -433,4 +436,3 @@ int16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     return -10;//INVALID_RESPONSE;
 }
 #endif
-

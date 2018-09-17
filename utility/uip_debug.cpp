@@ -12,6 +12,10 @@ extern "C" {
   #include "utility/uip.h"
 }
 
+#if defined(__GNUC__)
+  #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 struct uip_conn con[UIP_CONNS];
 
 void

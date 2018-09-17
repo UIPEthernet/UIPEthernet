@@ -38,6 +38,10 @@ extern "C"
 #include "utility/uip_timer.h"
 }
 
+#if defined(__GNUC__)
+  #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 #define ETH_HDR ((struct uip_eth_hdr *)&uip_buf[0])
 
 memhandle UIPEthernetClass::in_packet(NOBLOCK);

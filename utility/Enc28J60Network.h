@@ -78,7 +78,9 @@
       // ESP8266 (ESP8266) SS defined to pin 15
       #if defined(ARDUINO_AVR_LEONARDO)
         #define ENC28J60_CONTROL_CS     PIN_A10
-        #warning "Using LEONARDO borad PIN_A10 for ENC28J60_CONTROL_CS. Use UIPEthernet::init(uint8_t) to change it."
+        #if defined(VERBOSE)
+          #warning "Using LEONARDO borad PIN_A10 for ENC28J60_CONTROL_CS. Use UIPEthernet::init(uint8_t) to change it."
+        #endif
       #else
         #define ENC28J60_CONTROL_CS     SS
       #endif

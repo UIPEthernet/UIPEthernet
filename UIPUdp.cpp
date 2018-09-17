@@ -28,6 +28,10 @@ extern "C" {
 #include "utility/uip_arp.h"
 }
 
+#if defined(__GNUC__)
+  #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 #if UIP_UDP
 #define UIP_ARPHDRSIZE 42
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])

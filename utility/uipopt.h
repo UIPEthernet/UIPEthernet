@@ -91,10 +91,14 @@
 #include "uip-conf.h"
 
 #if defined(FORCE_UIP_CONF_BYTE_ORDER)
-  #warning "You forced 'FORCE_UIP_CONF_BYTE_ORDER' in 'utility/uip-conf.h'."
+  #if defined(VERBOSE)
+    #warning "You forced 'FORCE_UIP_CONF_BYTE_ORDER' in 'utility/uip-conf.h'."
+  #endif
   #define UIP_CONF_BYTE_ORDER      FORCE_UIP_CONF_BYTE_ORDER
 #elif defined(__BYTE_ORDER__)
-  #warning "Endianness configured automaticaly."
+  #if defined(VERBOSE)
+    #warning "Endianness configured automaticaly."
+  #endif
   #define UIP_CONF_BYTE_ORDER      __BYTE_ORDER__
 #else
   #error "You must set FORCE_UIP_CONF_BYTE_ORDER in 'utility/uip-conf.h'."
