@@ -858,7 +858,7 @@ uip_process(u8_t flag)
      the packet has been padded and we set uip_len to the correct
      value.. */
 
-  if((BUF->len[0] << 8) + BUF->len[1] <= uip_len) {
+  if((u16_t)(BUF->len[0] << 8) + BUF->len[1] <= uip_len) {
     uip_len = (BUF->len[0] << 8) + BUF->len[1];
 #if UIP_CONF_IPV6
     uip_len += 40; /* The length reported in the IPv6 header is the

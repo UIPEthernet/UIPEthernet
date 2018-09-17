@@ -238,7 +238,7 @@ newpacket:
       LogObject.uart_send_str(F("-"));
       LogObject.uart_send_dec(remain);
       LogObject.uart_send_str(F("]: '"));
-      for (uint16_t i=size-remain; i<=remain; i++)
+      for (int16_t i=size-remain; i<=remain; i++)
         {
         LogObject.uart_send_hex(buf[i]);
         LogObject.uart_send_str(F(" "));

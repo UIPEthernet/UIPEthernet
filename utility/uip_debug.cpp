@@ -211,6 +211,8 @@ UIPDebug::uip_debug_printbytes(const uint8_t *data, uint8_t len)
       LogObject.uart_send_dec(data[i]);
       if (i<len-1)
         LogObject.uart_send_str(F(","));
+    #else
+      (void)data; // unused
     #endif
     }
 }
