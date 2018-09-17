@@ -60,6 +60,11 @@ UIPEthernetClass::UIPEthernetClass()
 {
 }
 
+void UIPEthernetClass::init(const uint8_t pin)
+{
+  ENC28J60ControlCS = pin;
+}
+
 #if UIP_UDP
 int
 UIPEthernetClass::begin(const uint8_t* mac)
@@ -71,7 +76,7 @@ UIPEthernetClass::begin(const uint8_t* mac)
   // I leave it there commented for history. It is bring all GCC "new" memory allocation code, making the *.bin almost 40K bigger. I've move it globally.
   _dhcp = &s_dhcp;
   // Initialise the basic info
-  init(mac);
+  netInit(mac);
 
   // Now try to get our config info from a DHCP server
   int ret = _dhcp->beginWithDHCP((uint8_t*)mac);
@@ -123,7 +128,7 @@ UIPEthernetClass::begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddre
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("UIPEthernetClass::begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet) DEBUG_V3:Function started"));
   #endif
-  init(mac);
+  netInit(mac);
   configure(ip,dns,gateway,subnet);
 }
 
@@ -401,9 +406,9 @@ sendandfree:
   return true;
 }
 
-void UIPEthernetClass::init(const uint8_t* mac) {
+void UIPEthernetClass::netInit(const uint8_t* mac) {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.uart_send_strln(F("UIPEthernetClass::init(const uint8_t* mac) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("UIPEthernetClass::netInit(const uint8_t* mac) DEBUG_V3:Function started"));
   #endif
   periodic_timer = millis() + UIP_PERIODIC_TIMER;
 

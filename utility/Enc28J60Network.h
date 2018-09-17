@@ -78,7 +78,7 @@
       // ESP8266 (ESP8266) SS defined to pin 15
       #if defined(ARDUINO_AVR_LEONARDO)
         #define ENC28J60_CONTROL_CS     PIN_A10
-        #warning "Use LEONARDO borad PIN_A10 for ENC28J60_CONTROL_CS. You can configure in 'utility/Enc28J60Network.h'."
+        #warning "Using LEONARDO borad PIN_A10 for ENC28J60_CONTROL_CS. Use UIPEthernet::init(uint8_t) to change it."
       #else
         #define ENC28J60_CONTROL_CS     SS
       #endif
@@ -110,13 +110,13 @@
    #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
       #define ENC28J60_CONTROL_CS     PIN_SPI_SS
    #endif
-   #if defined(ENC28J60_CONTROL_CS) && !defined(ARDUINO_AVR_LEONARDO)
-      #warning "Not defined ENC28J60_CONTROL_CS. Use borad default SS pin setting. You can configure in 'utility/Enc28J60Network.h'."
-   #endif
 #endif
 #if !defined(ENC28J60_CONTROL_CS)
-   #error "Not defined ENC28J60_CONTROL_CS!"
+   #warning "Default ENC28J60_CONTROL_CS could not be defined! Use UIPEthernet::init(uint8_t) to set it."
+   #define ENC28J60_CONTROL_CS 0
 #endif
+
+extern uint8_t ENC28J60ControlCS;
 
 #if !defined(SPI_MOSI)
    #if defined(__AVR__) || defined(ESP8266) || defined(__RFduino__)
