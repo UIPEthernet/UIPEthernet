@@ -351,7 +351,7 @@ UIPClient::read()
     LogObject.uart_send_strln(F("UIPClient::read() DEBUG_V3:Function started"));
   #endif
   uint8_t c;
-  if (read(&c,1) < 0)
+  if (read(&c,1) <= 0)
     return -1;
   return c;
 }
