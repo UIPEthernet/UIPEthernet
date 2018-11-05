@@ -60,6 +60,9 @@
 #ifndef __UIPOPT_H__
 #define __UIPOPT_H__
 
+// uncomment follow to disable hostbyname resolution (save up to 1198 flash bytes)
+//#define DNS_DISABLE_HOSTBYNAME_RESOLUTION
+
 #ifndef UIP_LITTLE_ENDIAN
   #if defined(LITTLE_ENDIAN)
     #define UIP_LITTLE_ENDIAN LITTLE_ENDIAN

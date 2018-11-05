@@ -128,15 +128,17 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
 }
 
 int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
-{
+{    
     int ret =0;
 
-    // See if it's a numeric IP address
+// See if it's a numeric IP address
     if (inet_aton(aHostname, aResult))
     {
         // It is, our work here is done
         return 1;
     }
+
+#ifndef DNS_DISABLE_HOSTBYNAME_RESOLUTION
 
     // Check we've got a valid DNS server to use
     if (iDNSServer == INADDR_NONE)
@@ -180,6 +182,8 @@ int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
         // We're done with the socket now
         iUdp.stop();
     }
+
+#endif
 
     return ret;
 }
