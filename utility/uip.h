@@ -1562,11 +1562,11 @@ struct uip_eth_addr {
  Check if a MAC address is valid (non-zero)
  */
 #define uip_eth_addr_valid(addr) ( \
-		addr[0] != 0x00 && \
-		addr[1] != 0x00 && \
-		addr[2] != 0x00 && \
-		addr[3] != 0x00 && \
-		addr[4] != 0x00 && \
+		addr[0] != 0x00 || \
+		addr[1] != 0x00 || \
+		addr[2] != 0x00 || \
+		addr[3] != 0x00 || \
+		addr[4] != 0x00 || \
 		addr[5] != 0x00)
 
 /**
