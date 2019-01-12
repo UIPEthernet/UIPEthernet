@@ -155,6 +155,13 @@ int UIPEthernetClass::maintain(){
 #endif
 }
 
+EthernetLinkStatus UIPEthernetClass::linkStatus()
+{
+  if (!Enc28J60.geterevid())
+    return Unknown;
+  return Enc28J60.linkStatus() ? LinkON : LinkOFF;
+}
+
 IPAddress UIPEthernetClass::localIP()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3

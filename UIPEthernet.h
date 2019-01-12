@@ -67,6 +67,12 @@ extern "C"
 
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
+enum EthernetLinkStatus {
+  Unknown,
+  LinkON,
+  LinkOFF
+};
+
 class UIPEthernetClass
 {
 public:
@@ -82,6 +88,8 @@ public:
   // data and issue IP events to the sketch.  It does not return until all IP
   // events have been processed. Renews dhcp-lease if required.
   int maintain();
+
+  EthernetLinkStatus linkStatus();
 
   IPAddress localIP();
   IPAddress subnetMask();
