@@ -351,7 +351,7 @@ UIPClient::read()
     LogObject.uart_send_strln(F("UIPClient::read() DEBUG_V3:Function started"));
   #endif
   uint8_t c;
-  if (read(&c,1) < 0)
+  if (read(&c,1) <= 0)
     return -1;
   return c;
 }
@@ -555,7 +555,7 @@ UIPClient::_allocateData()
       uip_userdata_t* data = &UIPClient::all_data[sock];
       if (!data->state)
         {
-          data->state = sock | UIP_CLIENT_CONNECTED;
+          data->state = (uip_conn - uip_conns) | UIP_CLIENT_CONNECTED; // part of state is used for uip_conns index
           memset(&data->packets_in[0],0,sizeof(uip_userdata_t)-sizeof(data->state));
           return data;
         }
