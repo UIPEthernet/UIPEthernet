@@ -76,7 +76,7 @@
       // Arduino Leonardo (ARDUINO_AVR_LEONARDO) SS defined to LED_BUILTIN_RX (17)
       // Arduino Mega(__AVR_ATmega2560__) SS defined to pin 53
       // ESP8266 (ESP8266) SS defined to pin 15
-      #if defined(ARDUINO_AVR_LEONARDO)
+      #if defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_MICRO)
         #define ENC28J60_CONTROL_CS     PIN_A10
         #warning "Use LEONARDO borad PIN_A10 for ENC28J60_CONTROL_CS. You can configure in 'utility/Enc28J60Network.h'."
       #else
