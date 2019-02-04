@@ -111,7 +111,7 @@
       #define ENC28J60_CONTROL_CS     PIN_SPI_SS
    #endif
    #if defined(ENC28J60_CONTROL_CS) && !defined(ARDUINO_AVR_LEONARDO)
-      #warning "Not defined ENC28J60_CONTROL_CS. Use borad default SS pin setting. You can configure in 'utility/Enc28J60Network.h'."
+      #pragma message "ENC28J60_CONTROL_CS not defined by user. Using board's default SS pin setting. You can configure in 'utility/Enc28J60Network.h'."
    #endif
 #endif
 #if !defined(ENC28J60_CONTROL_CS)
