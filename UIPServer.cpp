@@ -46,6 +46,11 @@ void UIPServer::begin()
   UIPEthernetClass::tick();
 }
 
+void UIPServer::begin(uint16_t port) {
+  _port = htons(port);
+  begin();
+}
+
 size_t UIPServer::write(uint8_t c)
 {
   return write(&c,1);
