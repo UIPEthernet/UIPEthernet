@@ -51,3 +51,10 @@ https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60
 
 - Added support ESP32 and SAMD
 - New release:2.0.6
+
+- bug fixes (jandrassy)
+- Ethernet lib compatibility: `init(cs_pin)` (by phd) and `linkStatus`
+- ARP Table improvement by dimitar-kunchev
+- UIPServer esp32 core 1.0.1 compilation compatibility (jandrassy)
+- uipethernet-conf.h options can be specified as -D (jandrassy)
+- New release:2.0.7
