@@ -376,8 +376,10 @@ uip_arp_out(void)
      packet with an ARP request for the IP address. */
 
   /* First check if destination is a local broadcast. */
-  if(uip_ipaddr_cmp(IPBUF->destipaddr, broadcast_ipaddr)) {
-    memcpy(IPBUF->ethhdr.dest.addr, broadcast_ethaddr.addr, 6);
+  if(uip_ipaddr_cmp(IPBUF->destipaddr, broadcast_ipaddr)
+        || ((IPBUF->destipaddr[0]==(uip_hostaddr[0] | (0xFFFF&(~uip_netmask[0])))) && (IPBUF->destipaddr[1]==(uip_hostaddr[1] | (0XFFFF&(~uip_netmask[1]))))) //Local Broatcast  
+    ) {
+    memcpy(IPBUF->ethhdr.dest.addr, broadcast_ethaddr.addr, 6); 
   } else {
     /* Check if the destination address is on the local network. */
     if(!uip_ipaddr_maskcmp(IPBUF->destipaddr, uip_hostaddr, uip_netmask)) {

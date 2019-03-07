@@ -911,7 +911,7 @@ uip_process(u8_t flag)
     DEBUG_PRINTF("UDP IP checksum 0x%04x\n", uip_ipchksum());
      if(BUF->proto == UIP_PROTO_UDP && (
         uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr) // Limited broadcast
-        || ((BUF->destipaddr[0]==(uip_hostaddr[0] | (~uip_netmask[0]))) && (BUF->destipaddr[1]==(uip_hostaddr[1] | (~uip_netmask[1])))) // Direct broadcast
+        || ((BUF->destipaddr[0]==(uip_hostaddr[0] | (0xFFFF&(~uip_netmask[0])))) && (BUF->destipaddr[1]==(uip_hostaddr[1] | (0XFFFF&(~uip_netmask[1]))))) // Direct broadcast
         )
        /*&&
 	 uip_ipchksum() == 0xffff*/) {
