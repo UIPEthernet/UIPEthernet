@@ -399,12 +399,14 @@ Enc28J60Network::setERXRDPT(void)
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("Enc28J60Network::setERXRDPT(void) DEBUG_V3:Function started"));
   #endif
+  // Make sure the value is odd. See Rev. B1,B4,B5,B7 Silicon Errata issues 14
+  uint16_t actnextPacketPtr = nextPacketPtr == RXSTART_INIT ? RXSTOP_INIT : nextPacketPtr-1;
   #if ACTLOGLEVEL>=LOG_DEBUG
     LogObject.uart_send_str(F("Enc28J60Network::setERXRDPT(void) DEBUG:Set actnextPacketPtr:"));
-    LogObject.uart_send_hexln(nextPacketPtr);
+    LogObject.uart_send_hexln(actnextPacketPtr);
   #endif
   // datasheet: The ENC28J60 will always write up to, but not including
-  writeRegPair(ERXRDPTL, nextPacketPtr);
+  writeRegPair(ERXRDPTL, actnextPacketPtr);
 }
 
 memaddress
