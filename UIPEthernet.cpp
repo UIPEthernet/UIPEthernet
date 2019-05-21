@@ -48,6 +48,7 @@ uint8_t UIPEthernetClass::packetstate(0);
 unsigned long UIPEthernetClass::periodic_timer;
 
 IPAddress UIPEthernetClass::_dnsServerAddress;
+IPAddress UIPEthernetClass::_ntpServerAddress;
 #if UIP_UDP
   DhcpClass* UIPEthernetClass::_dhcp(NULL);
   static DhcpClass s_dhcp; // Placing this instance here is saving 40K to final *.bin (see bug below)
@@ -84,7 +85,7 @@ UIPEthernetClass::begin(const uint8_t* mac)
   {
     // We've successfully found a DHCP server and got our configuration info, so set things
     // accordingly
-    configure(_dhcp->getLocalIp(),_dhcp->getDnsServerIp(),_dhcp->getGatewayIp(),_dhcp->getSubnetMask());
+    configure(_dhcp->getLocalIp(),_dhcp->getDnsServerIp(),_dhcp->getGatewayIp(),_dhcp->getSubnetMask(),_dhcp->getNTPServerIp());
   }
   return ret;
 }
@@ -129,7 +130,19 @@ UIPEthernetClass::begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddre
     LogObject.uart_send_strln(F("UIPEthernetClass::begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet) DEBUG_V3:Function started"));
   #endif
   netInit(mac);
-  configure(ip,dns,gateway,subnet);
+  IPAddress ntp = ip;
+  ntp[3] = 1;
+  configure(ip,dns,gateway,subnet,ntp);
+}
+
+void
+UIPEthernetClass::begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet, IPAddress ntp)
+{
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("UIPEthernetClass::begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet) DEBUG_V3:Function started"));
+  #endif
+  netInit(mac);
+  configure(ip,dns,gateway,subnet,ntp);
 }
 
 int UIPEthernetClass::maintain(){
@@ -149,7 +162,7 @@ int UIPEthernetClass::maintain(){
       case DHCP_CHECK_RENEW_OK:
       case DHCP_CHECK_REBIND_OK:
         //we might have got a new IP.
-        configure(_dhcp->getLocalIp(),_dhcp->getDnsServerIp(),_dhcp->getGatewayIp(),_dhcp->getSubnetMask());
+        configure(_dhcp->getLocalIp(),_dhcp->getDnsServerIp(),_dhcp->getGatewayIp(),_dhcp->getSubnetMask(),_dhcp->getNTPServerIp());
         break;
       default:
         //this is actually a error, it will retry though
@@ -207,6 +220,15 @@ IPAddress UIPEthernetClass::dnsServerIP()
   #endif
   return _dnsServerAddress;
 }
+
+IPAddress UIPEthernetClass::ntpServerIP()
+{
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("UIPEthernetClass::dnsServerIP() DEBUG_V3:Function started"));
+  #endif
+  return _ntpServerAddress;
+}
+
 
 void
 UIPEthernetClass::tick()
@@ -426,7 +448,7 @@ void UIPEthernetClass::netInit(const uint8_t* mac) {
   uip_arp_init();
 }
 
-void UIPEthernetClass::configure(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet) {
+void UIPEthernetClass::configure(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet, IPAddress ntp) {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("UIPEthernetClass::configure(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet) DEBUG_V3:Function started"));
   #endif
@@ -442,6 +464,7 @@ void UIPEthernetClass::configure(IPAddress ip, IPAddress dns, IPAddress gateway,
   uip_setnetmask(ipaddr);
 
   _dnsServerAddress = dns;
+  _ntpServerAddress = ntp;
 }
 
 UIPEthernetClass UIPEthernet;
