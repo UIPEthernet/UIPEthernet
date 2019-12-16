@@ -107,7 +107,7 @@
          #define ENC28J60_CONTROL_CS     SPI.nssPin()
          //#define ENC28J60_CONTROL_CS     PA4
       #endif
-   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
       #define ENC28J60_CONTROL_CS     PIN_SPI_SS
    #endif
 #endif
@@ -139,7 +139,7 @@ extern uint8_t ENC28J60ControlCS;
       #else
          #define SPI_MOSI SPI.mosiPin()
       #endif
-   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
       #define SPI_MOSI PIN_SPI_MOSI
    #endif
 #endif
@@ -168,7 +168,7 @@ extern uint8_t ENC28J60ControlCS;
       #else
          #define SPI_MISO SPI.misoPin()
       #endif
-   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
       #define SPI_MISO PIN_SPI_MISO
    #endif
 #endif
@@ -196,7 +196,7 @@ extern uint8_t ENC28J60ControlCS;
       #else
          #define SPI_SCK SPI.sckPin()
       #endif
-   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+   #elif defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
       #define SPI_SCK PIN_SPI_SCK
    #endif
 #endif
@@ -204,7 +204,7 @@ extern uint8_t ENC28J60ControlCS;
    #error "Not defined SPI_SCK!"
 #endif
 
-#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD) || defined(__ARDUINO_ARC__) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(STM32F2) || defined(ESP8266) || defined(ARDUINO_ARCH_AMEBA) || defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__RFduino__) || defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_AVR) || defined(ARDUINO_ARCH_MEGAAVR)
+#if defined(__MBED__) || defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD) || defined(__ARDUINO_ARC__) || defined(__STM32F1__) || defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__) || defined(STM32F2) || defined(ESP8266) || defined(ARDUINO_ARCH_AMEBA) || defined(__MK20DX128__) || defined(__MKL26Z64__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__) || defined(__RFduino__) || defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_AVR) || defined(ARDUINO_ARCH_MEGAAVR)
    #if defined(ARDUINO) && defined(STM32F3)
       #include "HardwareSPI.h"
    #else
