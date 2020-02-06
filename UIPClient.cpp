@@ -320,7 +320,7 @@ UIPClient::read(uint8_t *buf, size_t size)
             {
               remain -= read;
               _eatBlock(&data->packets_in[0]);
-              if (uip_stopped(&uip_conns[data->state & UIP_CLIENT_SOCKETS]) && !(data->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+              if (uip_stopped(&uip_conns[data->conn_index]) && !(data->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
                 data->state |= UIP_CLIENT_RESTART;
               if (data->packets_in[0] == NOBLOCK)
                 {
@@ -555,7 +555,8 @@ UIPClient::_allocateData()
       uip_userdata_t* data = &UIPClient::all_data[sock];
       if (!data->state)
         {
-          data->state = (uip_conn - uip_conns) | UIP_CLIENT_CONNECTED; // part of state is used for uip_conns index
+          data->conn_index = uip_conn - uip_conns;
+          data->state = UIP_CLIENT_CONNECTED;
           memset(&data->packets_in[0],0,sizeof(uip_userdata_t)-sizeof(data->state));
           return data;
         }

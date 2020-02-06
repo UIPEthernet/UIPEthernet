@@ -33,9 +33,24 @@ UIPClient UIPServer::available()
   for ( uip_userdata_t* data = &UIPClient::all_data[0]; data < &UIPClient::all_data[UIP_CONNS]; data++ )
     {
       if (data->packets_in[0] != NOBLOCK
-          && (((data->state & UIP_CLIENT_CONNECTED) && uip_conns[data->state & UIP_CLIENT_SOCKETS].lport ==_port)
+          && (((data->state & UIP_CLIENT_CONNECTED) && uip_conns[data->conn_index].lport ==_port)
               || ((data->state & UIP_CLIENT_REMOTECLOSED) && ((uip_userdata_closed_t *)data)->lport == _port)))
         return UIPClient(data);
+    }
+  return UIPClient();
+}
+
+UIPClient UIPServer::accept()
+{
+  UIPEthernetClass::tick();
+  for ( uip_userdata_t* data = &UIPClient::all_data[0]; data < &UIPClient::all_data[UIP_CONNS]; data++ )
+    {
+      if (!(data->state & UIP_CLIENT_ACCEPTED)
+          && (((data->state & UIP_CLIENT_CONNECTED) && uip_conns[data->conn_index].lport ==_port)
+              || ((data->state & UIP_CLIENT_REMOTECLOSED) && ((uip_userdata_closed_t *)data)->lport == _port))) {
+        data->state |= UIP_CLIENT_ACCEPTED;
+        return UIPClient(data);
+      }
     }
   return UIPClient();
 }
@@ -61,7 +76,7 @@ size_t UIPServer::write(const uint8_t *buf, size_t size)
   size_t ret = 0;
   for ( uip_userdata_t* data = &UIPClient::all_data[0]; data < &UIPClient::all_data[UIP_CONNS]; data++ )
     {
-      if ((data->state & UIP_CLIENT_CONNECTED) && uip_conns[data->state & UIP_CLIENT_SOCKETS].lport ==_port)
+      if ((data->state & UIP_CLIENT_CONNECTED) && uip_conns[data->conn_index].lport ==_port)
         ret += UIPClient::_write(data,buf,size);
     }
   return ret;

@@ -47,6 +47,7 @@
 public:
   UIPServer(uint16_t);
   UIPClient available();
+  UIPClient accept();
   virtual void begin();
   virtual void begin(uint16_t port);
   virtual size_t write(uint8_t);
