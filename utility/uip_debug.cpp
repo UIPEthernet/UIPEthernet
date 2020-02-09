@@ -1,6 +1,5 @@
 #if defined(ARDUINO)
   #include <Arduino.h>
-  #include <HardwareSerial.h>
 #endif
 #if defined(__MBED__)
   #include <mbed.h>
