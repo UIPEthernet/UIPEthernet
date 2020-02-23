@@ -58,3 +58,12 @@ https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60
 - UIPServer esp32 core 1.0.1 compilation compatibility (jandrassy)
 - uipethernet-conf.h options can be specified as -D (jandrassy)
 - New release:2.0.7
+
+- Fix local UDP broadcast address evaluation with ~ operator on 32bit systems (pknoe3lh)
+- Re-fix Errata 14 (Bigpet)
+- ENC28J60_USE_SPILIB for ARDUINO_ARCH_AVR and ARDUINO_ARCH_MEGAAVR (jandrassy)
+- Add support for Teensy4 boards (__IMXRT1062__) (rjongeneelen)
+- `EthernetServer.accept()` implementation (jandrassy)
+- compilation with logging enabled fixes for megaavr core (jandrassy)
+- stm32 blue pill wiring picture corrected (jandrassy)
+- New release:2.0.8
