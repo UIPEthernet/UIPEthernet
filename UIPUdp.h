@@ -28,7 +28,7 @@
   #else
     #include "Print.h"
   #endif
-  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+  #if defined(__STM32F3__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__RFduino__)
     #include "mbed/Udp.h"
   #else
     #include <Udp.h>
@@ -56,10 +56,10 @@ typedef struct {
   bool send;
 } uip_udp_userdata_t;
  
-#if defined(ARDUINO) && !defined(STM32F3) && !defined(__RFduino__)
+#if defined(ARDUINO) && (defined(ARDUINO_ARCH_STM32) || !defined(STM32F3)) && !defined(__RFduino__)
   class UIPUDP : public UDP {
 #endif
-#if defined(__MBED__) || defined(STM32F3) || defined(__RFduino__)
+#if defined(__MBED__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__RFduino__)
   class UIPUDP : public Print, public UDP {
 #endif
 private:
