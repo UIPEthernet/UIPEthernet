@@ -39,7 +39,7 @@ uint8_t ENC28J60ControlCS = ENC28J60_CONTROL_CS;
    #if defined(ARDUINO)
      #if defined(STM32F2)
        #include <SPI.h>
-     #elif !defined(STM32F3) && !defined(__STM32F4__)
+     #elif (defined(ARDUINO_ARCH_STM32) || !defined(STM32F3)) && !defined(__STM32F4__)
        #include <SPI.h>
        extern SPIClass SPI;
      //#elif defined(ARDUINO_ARCH_AMEBA)
@@ -135,7 +135,7 @@ void Enc28J60Network::init(uint8_t* macaddr)
     LogObject.uart_send_strln(F("ENC28J60::init DEBUG:Use SPI lib SPI.begin()"));
   #endif
   #if defined(ARDUINO)
-    #if defined(__STM32F3__) || defined(STM32F3) || defined(__STM32F4__)
+    #if defined(__STM32F3__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__STM32F4__)
       SPI.begin(SPI_9MHZ, MSBFIRST, 0);
     #else
       SPI.begin();
