@@ -28,8 +28,13 @@
 #endif
 
 #if defined(ARDUINO)
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+  #include "mbed/Printable.h"
+  #include "mbed/WString.h"
+	#else
   #include "Printable.h"
   #include "WString.h"
+#endif
 #endif
 
 // A class to make it easier to handle and pass around IP addresses

@@ -36,12 +36,12 @@
 #ifndef udp_h
     #define udp_h
 
-    #if defined(__MBED__)
+    #if defined(__MBED__) 
       #include <mbed.h>
       #include "mbed/IPAddress.h"
     #else
-      #if defined(__RFduino__)
-        #include "IPAddress.h"
+	  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+        #include "mbed/IPAddress.h"
       #else
         #include "IPAddress.h"
       #endif

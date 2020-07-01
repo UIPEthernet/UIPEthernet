@@ -22,16 +22,20 @@
 
 #include "ethernet_comp.h"
 #if defined(ARDUINO)
-  #include "Print.h"
-  #if defined(__STM32F3__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__RFduino__)
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+    #include "mbed/Print.h"
     #include "mbed/Client.h"
+	#warning UIPClient ARDUINO mbed
   #else
+    #include "Print.h"
     #include "Client.h"
+	#warning UIPClient else
   #endif
 #endif
 #if defined(__MBED__)
   #include "mbed/Print.h"
   #include "mbed/Client.h"
+  #warning UIPClient mbed
 #endif
 #include "utility/mempool.h"
 #include "utility/logging.h"
@@ -71,11 +75,11 @@ typedef struct {
 #endif
 } uip_userdata_t;
 
-#if defined(ARDUINO) && (defined(ARDUINO_ARCH_STM32) || !defined(STM32F3)) && !defined(__RFduino__)
+#if defined(ARDUINO) && !defined(STM32F3) && !defined(__RFduino__)
   class UIPClient : public Client {
 #endif
-#if defined(__MBED__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__RFduino__)
-  class UIPClient : public Print, public Client {
+#if defined(__MBED__) || defined(STM32F3) || defined(__RFduino__)
+  class UIPClient :  public Client {
 #endif
 public:
   UIPClient();

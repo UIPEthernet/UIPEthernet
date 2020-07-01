@@ -26,7 +26,7 @@
 #endif
 #if defined(ARDUINO)
   #include <Arduino.h>
-  #if defined(__STM32F3__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__RFduino__)
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
     #include "mbed/IPAddress.h"
   #else
     #include "IPAddress.h"

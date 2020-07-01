@@ -18,7 +18,8 @@
   */
 #if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
-#if defined(__MBED__)
+#if defined(__MBED__) 
+
 #include "millis.h"
 #include <mbed.h>
 

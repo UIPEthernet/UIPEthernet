@@ -27,7 +27,13 @@
 #endif
 
 #if defined(ARDUINO)
-  #include "WString.h"
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+	  #include "mbed/WString.h"
+	  #include "mbed/itoa.h"
+	  #include "mbed/dtostrf.h"
+	#else
+	  #include "WString.h"
+#endif
 #endif
 
 /*********************************************/

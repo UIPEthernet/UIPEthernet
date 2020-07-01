@@ -33,7 +33,11 @@
 #endif
 
 #if defined(ARDUINO)
-  #include <avr/pgmspace.h>
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+    #include <mbed/pgmspace.h>
+  #else 
+	#include <avr/pgmspace.h>
+  #endif
 #endif
 
 // When compiling programs with this class, the following gcc parameters

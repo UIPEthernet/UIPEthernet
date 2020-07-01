@@ -27,9 +27,13 @@
 #include <math.h>
 #if defined(ARDUINO)
   #include "Arduino.h"
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+  #include "mbed/Print.h"
+	#else
   #include "Print.h"
+  #warning Print.cpp ARDUINO __FILE__
 #endif
-
+#endif
 #if defined(__MBED__)
   #include "mbed/Print.h"
 #endif

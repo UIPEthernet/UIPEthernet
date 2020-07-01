@@ -20,6 +20,7 @@
 
 #ifndef Print_h
 #define Print_h
+#warning Print.h from mbed
 
 #if defined(__MBED__)
   #include <mbed.h>
@@ -38,8 +39,13 @@
   #include "mbed/Printable.h"
 #endif
 #if defined(ARDUINO)
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+  #include "mbed/WString.h"
+  #include "mbed/Printable.h"
+	#else
   #include "WString.h"
   #include "Printable.h"
+#endif
 #endif
 
 #define DEC 10

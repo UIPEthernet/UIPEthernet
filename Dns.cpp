@@ -9,7 +9,7 @@
 //#include <stdlib.h>
 #if defined(ARDUINO)
   #include "Arduino.h"
-  #if defined(__STM32F3__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3))
+  #if defined(__STM32F3__) || defined(STM32F3)
     #include "mbed/Udp.h"
   #else
     #include "Udp.h"

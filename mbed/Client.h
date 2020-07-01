@@ -23,14 +23,27 @@
   #define client_h
   #if defined(__MBED__)
     #include "mbed/IPAddress.h"
+	#include "mbed/Print.h"
+	#include "Stream.h"
+	#warning Client mbed
   #endif
 
   #if defined(ARDUINO)
-    #include "IPAddress.h"
+	  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+		#include "mbed/IPAddress.h"
+		#include "mbed/Print.h"
+		#include "Stream.h"
+		#warning Client ARDUINO mbed
+	  #else
+		#include "IPAddress.h"
+		#include "Print.h"
+		#include "Stream.h"
+		#warning Client ARDUINO
+	  #endif
   #endif
 
-class   Client
-{
+class   Client : public Stream {
+
 public:
     virtual ~Client(){};
     virtual int         connect(IPAddress ip, uint16_t port) = 0;

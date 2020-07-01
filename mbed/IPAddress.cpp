@@ -19,8 +19,13 @@
 #if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_SAM)
 
 #if defined(ARDUINO)
-  #include <Arduino.h>
-  #include <IPAddress.h>
+  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+	  #include "mbed/Print.h"
+	  #include "mbed/IPAddress.h"
+	#else
+	  #include <Arduino.h>
+	  #include <IPAddress.h>
+#endif
 #endif
 #if defined(__MBED__)
   #include <mbed.h>
