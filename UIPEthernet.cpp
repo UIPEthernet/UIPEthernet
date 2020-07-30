@@ -222,7 +222,8 @@ if (Enc28J60Network::geterevid()==0)
    return;
    }
 #if defined(ESP8266)
-  wdt_reset();
+  //wdt_reset();  // ray modified
+  yield();
 #endif
   if (in_packet == NOBLOCK)
     {

@@ -243,15 +243,13 @@ private:
   static uint8_t readByte(uint16_t addr);
   static void writeByte(uint16_t addr, uint8_t data);
   static void setBank(uint8_t address);
-  static uint8_t readReg(uint8_t address);
+  
   static void writeReg(uint8_t address, uint8_t data);
   static void writeRegPair(uint8_t address, uint16_t data);
   static void phyWrite(uint8_t address, uint16_t data);
   static uint16_t phyRead(uint8_t address);
   static void clkout(uint8_t clk);
 
-  static void enableBroadcast (bool temporary);
-  static void disableBroadcast (bool temporary);
   static void enableMulticast (void);
   static void disableMulticast (void);
 
@@ -261,7 +259,13 @@ private:
   friend void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
 
 public:
+  static void enableBroadcast (bool temporary);
+  static void disableBroadcast (bool temporary);
 
+	static uint8_t readReg(uint8_t address);
+	static void bfc(uint8_t reg, uint8_t flag) {
+		writeOp(ENC28J60_BIT_FIELD_CLR, reg, flag);
+	}
   void powerOn(void);
   void powerOff(void);
   static uint8_t geterevid(void);

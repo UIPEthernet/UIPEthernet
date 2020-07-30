@@ -88,6 +88,7 @@
 #endif /* UIP_CONF_IPV6 */
 
 #include <string.h>
+#include <Arduino.h>
 
 /*---------------------------------------------------------------------------*/
 /* Variable definitions. */
@@ -908,15 +909,15 @@ uip_process(u8_t flag)
     /* If IP broadcast support is configured, we check for a broadcast
        UDP packet, which may be destined to us. */
 #if UIP_BROADCAST
-    DEBUG_PRINTF("UDP IP checksum 0x%04x\n", uip_ipchksum());
-     if(BUF->proto == UIP_PROTO_UDP && (
-        uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr) // Limited broadcast
-        || ((BUF->destipaddr[0]==(uip_hostaddr[0] | (0xFFFF&(~uip_netmask[0])))) && (BUF->destipaddr[1]==(uip_hostaddr[1] | (0XFFFF&(~uip_netmask[1]))))) // Direct broadcast
-        )
-       /*&&
+	  DEBUG_PRINTF("UDP IP checksum 0x%04x\n", uip_ipchksum());
+	   if(BUF->proto == UIP_PROTO_UDP && (
+	      uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr) // Limited broadcast
+	      || ((BUF->destipaddr[0]==(uip_hostaddr[0] | (0xFFFF&(~uip_netmask[0])))) && (BUF->destipaddr[1]==(uip_hostaddr[1] | (0XFFFF&(~uip_netmask[1]))))) // Direct broadcast
+	      )
+	     /*&&
 	 uip_ipchksum() == 0xffff*/) {
-      goto udp_input;
-    }
+	    goto udp_input;
+	  }
 #endif /* UIP_BROADCAST */
     
     /* Check if the packet is destined for our IP address. */

@@ -97,6 +97,7 @@ public:
   IPAddress subnetMask();
   IPAddress gatewayIP();
   IPAddress dnsServerIP();
+  static void tick();
 
 private:
   static memhandle in_packet;
@@ -112,8 +113,6 @@ private:
 
   static void netInit(const uint8_t* mac);
   static void configure(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet);
-
-  static void tick();
 
   static bool network_send();
 

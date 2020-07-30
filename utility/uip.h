@@ -390,7 +390,6 @@ void uip_setipid(u16_t id);
 #define uip_udp_periodic_conn(conn) do { uip_udp_conn = conn; \
                                          uip_process(UIP_UDP_TIMER); } while (0)
 
-
 #endif /* UIP_UDP */
 
 /**

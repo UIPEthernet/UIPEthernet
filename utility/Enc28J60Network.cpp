@@ -207,12 +207,13 @@ void Enc28J60Network::init(uint8_t* macaddr)
     LogObject.uart_send_strln(F("ENC28J60::init DEBUG_V3:Before readOp(ENC28J60_READ_CTRL_REG, ESTAT)"));
   #endif
   nextPacketPtr = RXSTART_INIT;
-  while ((!readOp(ENC28J60_READ_CTRL_REG, ESTAT) & ESTAT_CLKRDY) && (timeout>0))
+  while ((!(readOp(ENC28J60_READ_CTRL_REG, ESTAT) & ESTAT_CLKRDY)) && (timeout>0))
     {
     timeout=timeout-1;
-    delay(10);
+    //delay(10);
+    yield();
     #if defined(ESP8266)
-       wdt_reset();
+       //wdt_reset();
     #endif
     }
   #if ACTLOGLEVEL>=LOG_ERR
@@ -246,12 +247,14 @@ void Enc28J60Network::init(uint8_t* macaddr)
   // This is hex 303F->EPMM0=0x3f,EPMM1=0x30
   //TODO define specific pattern to receive dhcp-broadcast packages instead of setting ERFCON_BCEN!
 //    enableBroadcast(); // change to add ERXFCON_BCEN recommended by epam
-  writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN);
+  //writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN);
+  writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN); // ray: don't set BCEN at this point
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("ENC28J60::init DEBUG_V3:After writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN)"));
   #endif
   #if defined(ESP8266)
-     wdt_reset();
+     //wdt_reset();
+     yield();
   #endif
   writeRegPair(EPMM0, 0x303f);
   writeRegPair(EPMCSL, 0xf7f9);
@@ -328,7 +331,8 @@ Enc28J60Network::receivePacket(void)
     LogObject.uart_send_strln(F("Enc28J60Network::receivePacket(void) DEBUG_V3:Function started"));
   #endif
   #if defined(ESP8266)
-     wdt_reset();
+     //wdt_reset();
+     yield();
   #endif
   uint8_t rxstat;
   uint16_t len;
@@ -425,7 +429,8 @@ Enc28J60Network::sendPacket(memhandle handle)
     LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) INFO:Function started"));
   #endif
   #if defined(ESP8266)
-     wdt_reset();
+     //wdt_reset();
+     yield();
   #endif
   if (erevid==0)
     {
@@ -489,9 +494,9 @@ Enc28J60Network::sendPacket(memhandle handle)
     while (((readReg(EIR) & (EIR_TXIF | EIR_TXERIF)) == 0) && (timeout>0))
       {
       timeout=timeout-1;
-      delay(10);
+      yield();
       #if defined(ESP8266)
-         wdt_reset();
+         //wdt_reset();
       #endif
       }
     if (timeout==0)
@@ -542,7 +547,9 @@ Enc28J60Network::readPacket(memhandle handle, memaddress position, uint8_t* buff
     LogObject.uart_send_strln(F("Enc28J60Network::readPacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len) DEBUG_V3:Function started"));
   #endif
   #if defined(ESP8266)
-     wdt_reset();
+     //wdt_reset();
+     yield();
+     
   #endif
   len = setReadPtr(handle, position, len);
   readBuffer(len, buffer);
@@ -572,7 +579,8 @@ Enc28J60Network::writePacket(memhandle handle, memaddress position, uint8_t* buf
     LogObject.uart_send_decln(len);
   #endif
   #if defined(ESP8266)
-     wdt_reset();
+     //wdt_reset();
+     yield();
   #endif
   memblock *packet = &blocks[handle];
   uint16_t start = packet->begin + position;
@@ -657,7 +665,8 @@ uint8_t Enc28J60Network::readByte(uint16_t addr)
     LogObject.uart_send_strln(F("Enc28J60Network::readByte(uint16_t addr) DEBUG_V3:Function started"));
   #endif
   #if defined(ESP8266)
-     wdt_reset();
+     //wdt_reset();
+     yield();
   #endif
   writeRegPair(ERDPTL, addr);
 
@@ -694,7 +703,8 @@ void Enc28J60Network::writeByte(uint16_t addr, uint8_t data)
     LogObject.uart_send_strln(F("Enc28J60Network::writeByte(uint16_t addr, uint8_t data) DEBUG_V3:Function started"));
   #endif
   #if defined(ESP8266)
-     wdt_reset();
+     //wdt_reset();
+     yield();
   #endif
   writeRegPair(EWRPTL, addr);
 
@@ -788,8 +798,12 @@ enc28J60_mempool_block_move_callback(memaddress dest, memaddress src, memaddress
       // wait until runnig DMA is completed
       while (Enc28J60Network::readOp(ENC28J60_READ_CTRL_REG, ECON1) & ECON1_DMAST)
          {
-         delay(1);
+         //delay(1);
+         yield();
          }
+      // ray: clear DMAIF
+		  Enc28J60Network::writeOp(ENC28J60_BIT_FIELD_CLR, EIR, EIR_DMAIF);
+
     }
 }
 
@@ -1037,9 +1051,10 @@ Enc28J60Network::phyWrite(uint8_t address, uint16_t data)
   // wait until the PHY write completes
   while (readReg(MISTAT) & MISTAT_BUSY)
     {
-    delay(10);
+    //delay(10);
+    yield();
     #if defined(ESP8266)
-       wdt_reset();
+       //wdt_reset();
     #endif
     if (--timeout == 0)
       {
@@ -1063,9 +1078,10 @@ Enc28J60Network::phyRead(uint8_t address)
   // wait until the PHY read completes
   while(readReg(MISTAT) & MISTAT_BUSY)
     {
-    delay(10);
+    //delay(10);
+    yield();
     #if defined(ESP8266)
-       wdt_reset();
+       //wdt_reset();
     #endif
     if (--timeout == 0)
       {

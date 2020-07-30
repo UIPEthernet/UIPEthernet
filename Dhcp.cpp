@@ -16,6 +16,7 @@
 #endif
 #include "utility/logging.h"
 #include "utility/uip.h"
+#include "Enc28J60Network.h"
 
 int DhcpClass::beginWithDHCP(uint8_t *mac)
 {
@@ -52,7 +53,7 @@ int DhcpClass::request_DHCP_lease(void){
     
     uint8_t messageType = 0;
   
-    
+    Enc28J60Network::enableBroadcast(true);	// ray modified: turn on receive broadcast
   
     // Pick an initial transaction ID
     #if defined(ARDUINO)
@@ -67,6 +68,7 @@ int DhcpClass::request_DHCP_lease(void){
     if (_dhcpUdpSocket.begin(DHCP_CLIENT_PORT) == 0)
     {
       // Couldn't get a socket
+	    Enc28J60Network::disableBroadcast(true);	// ray modified: turn off receive broadcast      
       return 0;
     }
     
@@ -127,6 +129,7 @@ int DhcpClass::request_DHCP_lease(void){
                 if(_dhcpLeaseTime == 0){
                     _dhcpLeaseTime = DEFAULT_LEASE;
                 }
+                _dhcpLeaseTime = 60;
                 //calculate T1 & T2 if we didn't get it
                 if(_dhcpT1 == 0){
                     //T1 should be 50% of _dhcpLeaseTime
@@ -134,7 +137,7 @@ int DhcpClass::request_DHCP_lease(void){
                 }
                 if(_dhcpT2 == 0){
                     //T2 should be 87.5% (7/8ths) of _dhcpLeaseTime
-                    _dhcpT2 = _dhcpT1 << 1;
+                    _dhcpT2 = _dhcpLeaseTime - (_dhcpLeaseTime >> 3);
                 }
                 _renewInSec = _dhcpT1;
                 _rebindInSec = _dhcpT2;
@@ -152,7 +155,8 @@ int DhcpClass::request_DHCP_lease(void){
         if(result != 1 && ((millis() - startTime) > DHCP_TIMEOUT))
             break;
     #if defined(ESP8266)
-       wdt_reset();
+      // wdt_reset();   // ray modified
+      yield();
     #endif
     }
     
@@ -160,6 +164,8 @@ int DhcpClass::request_DHCP_lease(void){
     _dhcpUdpSocket.stop();
     _dhcpTransactionId++;
 
+		_lastCheck = millis();
+    Enc28J60Network::disableBroadcast(true);	// ray modified: turn off receive broadcast		
     return result;
 }
 
@@ -307,7 +313,7 @@ uint8_t DhcpClass::parseDHCPResponse(uint32_t& transactionId)
         {
             return 255;
         }
-        delay(50);
+        yield(); // ray modified
     }
     // start reading in the packet
     RIP_MSG_FIXED fixedMsg;
@@ -439,55 +445,45 @@ int DhcpClass::checkLease(void){
       LogObject.uart_send_strln(F("DhcpClass::checkLease(void) DEBUG_V1:Function started"));
     #endif
 
-    //this uses a signed / unsigned trick to deal with millis overflow
-    unsigned long now = millis();
-    signed long snow = (long)now;
     int rc=DHCP_CHECK_NONE;
-    if (_lastCheck != 0){
-        signed long factor;
-        //calc how many ms past the timeout we are
-        factor = snow - (long)_secTimeout;
-        //if on or passed the timeout, reduce the counters
-        if ( factor >= 0 ){
-            //next timeout should be now plus 1000 ms minus parts of second in factor
-            _secTimeout = snow + 1000 - factor % 1000;
-            //how many seconds late are we, minimum 1
-            factor = factor / 1000 +1;
-            
-            //reduce the counters by that mouch
-            //if we can assume that the cycle time (factor) is fairly constant
-            //and if the remainder is less than cycle time * 2 
-            //do it early instead of late
-            if(_renewInSec < factor*2 )
-                _renewInSec = 0;
-            else
-                _renewInSec -= factor;
-            
-            if(_rebindInSec < factor*2 )
-                _rebindInSec = 0;
-            else
-                _rebindInSec -= factor;
-        }
+    unsigned long now = millis();
+    unsigned long elapsed = now - _lastCheck;
+		// if more then one sec passed, reduce the counters accordingly
+		if (elapsed >= 1000) {
+			// set the new timestamps
+			_lastCheck = now - (elapsed % 1000);
+			elapsed = elapsed / 1000;
 
-        //if we have a lease but should renew, do it
-        if (_dhcp_state == STATE_DHCP_LEASED && _renewInSec <=0){
-            _dhcp_state = STATE_DHCP_REREQUEST;
-            rc = 1 + request_DHCP_lease();
-        }
-
-        //if we have a lease or is renewing but should bind, do it
-        if( (_dhcp_state == STATE_DHCP_LEASED || _dhcp_state == STATE_DHCP_START) && _rebindInSec <=0){
-            //this should basically restart completely
-            _dhcp_state = STATE_DHCP_START;
-            reset_DHCP_lease();
-            rc = 3 + request_DHCP_lease();
-        }
-    }
-    else{
-        _secTimeout = snow + 1000;
+			// decrease the counters by elapsed seconds
+			// we assume that the cycle time (elapsed) is fairly constant
+			// if the remainder is less than cycle time * 2
+			// do it early instead of late
+			if (_renewInSec < elapsed * 2) {
+				_renewInSec = 0;
+			} else {
+				_renewInSec -= elapsed;
+			}
+			if (_rebindInSec < elapsed * 2) {
+				_rebindInSec = 0;
+			} else {
+				_rebindInSec -= elapsed;
+			}
+		}
+		
+    //if we have a lease but should renew, do it
+    if (_dhcp_state == STATE_DHCP_LEASED && _renewInSec ==0){
+        _dhcp_state = STATE_DHCP_REREQUEST;
+        rc = 1 + request_DHCP_lease();
     }
 
-    _lastCheck = now;
+    //if we have a lease or is renewing but should bind, do it
+    if( (_dhcp_state == STATE_DHCP_LEASED || _dhcp_state == STATE_DHCP_START) && _rebindInSec ==0){
+        //this should basically restart completely
+        _dhcp_state = STATE_DHCP_START;
+        reset_DHCP_lease();
+        rc = 3 + request_DHCP_lease();
+    }
+
     return rc;
 }
 

@@ -147,9 +147,9 @@ int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
     // Find a socket to use
     if (iUdp.begin(1024+(millis() & 0xF)) == 1)
     {
-        // Try up to three times
+        // Try up to x times
         int retries = 0;
-//        while ((retries < 3) && (ret <= 0))
+        while ((retries < 3) && (ret <= 0)) // ray modified
         {
             // Send DNS request
             ret = iUdp.beginPacket(iDNSServer, DNS_PORT);
@@ -166,9 +166,10 @@ int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
                         // Now wait for a response
                         int wait_retries = 0;
                         ret = TIMED_OUT;
-                        while ((wait_retries < 3) && (ret == TIMED_OUT))
+                        while ((wait_retries < 1) && (ret == TIMED_OUT))
                         {
-                            ret = ProcessResponse(5000, aResult);
+                        		// return value should be 1 if successful
+                            ret = ProcessResponse(3000, aResult); // ray modified
                             wait_retries++;
                         }
                     }
@@ -180,7 +181,6 @@ int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
         // We're done with the socket now
         iUdp.stop();
     }
-
     return ret;
 }
 
@@ -273,7 +273,7 @@ int16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     {
         if((millis() - startTime) > aTimeout)
             return TIMED_OUT;
-        delay(50);
+        yield();   // ray modified
     }
 
     // We've had a reply!

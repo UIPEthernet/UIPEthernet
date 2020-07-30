@@ -109,7 +109,7 @@ UIPClient::connect(const char *host, uint16_t port)
   dns.begin(UIPEthernetClass::_dnsServerAddress);
   ret = dns.getHostByName(host, remote_addr);
   if (ret == 1) {
-    return connect(remote_addr, port);
+    ret = connect(remote_addr, port);
   }
 #endif
   return ret;

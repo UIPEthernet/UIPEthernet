@@ -168,10 +168,9 @@ UIPUDP::beginPacket(const char *host, uint16_t port)
   dns.begin(UIPEthernet.dnsServerIP());
   ret = dns.getHostByName(host, remote_addr);
   if (ret == 1) {
-    return beginPacket(remote_addr, port);
-  } else {
-    return ret;
+    ret = beginPacket(remote_addr, port);
   }
+  return ret;
 }
 
 // Finish off this packet and send it
