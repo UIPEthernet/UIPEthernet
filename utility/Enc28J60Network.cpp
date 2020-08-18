@@ -344,7 +344,7 @@ Enc28J60Network::receivePacket(void)
   uint8_t epktcnt=readReg(EPKTCNT);
   if ((erevid!=0) && (epktcnt!=0))
     {
-      uint16_t readPtr = nextPacketPtr+6 > RXSTOP_INIT ? nextPacketPtr+6-RXSTOP_INIT+RXSTART_INIT : nextPacketPtr+6;
+      uint16_t readPtr = nextPacketPtr+6 > RXSTOP_INIT ? nextPacketPtr+6-((RXSTOP_INIT + 1)-RXSTART_INIT) : nextPacketPtr+6;
       // Set the read pointer to the start of the received packet
       writeRegPair(ERDPTL, nextPacketPtr);
       // read the next packet pointer
@@ -526,7 +526,7 @@ Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len)
     LogObject.uart_send_strln(F("Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len) DEBUG_V3:Function started"));
   #endif
   memblock *packet = handle == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[handle];
-  memaddress start = handle == UIP_RECEIVEBUFFERHANDLE && packet->begin + position > RXSTOP_INIT ? packet->begin + position-RXSTOP_INIT+RXSTART_INIT : packet->begin + position;
+  memaddress start = handle == UIP_RECEIVEBUFFERHANDLE && packet->begin + position > RXSTOP_INIT ? packet->begin + position-((RXSTOP_INIT + 1)-RXSTART_INIT) : packet->begin + position;
 
   writeRegPair(ERDPTL, start);
   
@@ -730,7 +730,7 @@ Enc28J60Network::copyPacket(memhandle dest_pkt, memaddress dest_pos, memhandle s
   #endif
   memblock *dest = &blocks[dest_pkt];
   memblock *src = src_pkt == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[src_pkt];
-  memaddress start = src_pkt == UIP_RECEIVEBUFFERHANDLE && src->begin + src_pos > RXSTOP_INIT ? src->begin + src_pos-RXSTOP_INIT+RXSTART_INIT : src->begin + src_pos;
+  memaddress start = src_pkt == UIP_RECEIVEBUFFERHANDLE && src->begin + src_pos > RXSTOP_INIT ? src->begin + src_pos-((RXSTOP_INIT + 1)-RXSTART_INIT) : src->begin + src_pos;
   enc28J60_mempool_block_move_callback(dest->begin+dest_pos,start,len);
   // setERXRDPT(); let it to freePacket after all packets are saved
 }
