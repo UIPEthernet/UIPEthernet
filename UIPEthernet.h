@@ -73,6 +73,14 @@ enum EthernetLinkStatus {
   LinkOFF
 };
 
+enum EthernetHardwareStatus {
+  EthernetNoHardware,
+  EthernetW5100,
+  EthernetW5200,
+  EthernetW5500,
+  EthernetENC28J60 = 10
+};
+
 class UIPEthernetClass
 {
 public:
@@ -92,6 +100,7 @@ public:
   int maintain();
 
   EthernetLinkStatus linkStatus();
+  EthernetHardwareStatus hardwareStatus();
 
   IPAddress localIP();
   IPAddress subnetMask();
