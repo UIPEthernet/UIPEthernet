@@ -418,7 +418,7 @@ Enc28J60Network::blockSize(memhandle handle)
   return ((handle == NOBLOCK) || (erevid==0)) ? 0 : handle == UIP_RECEIVEBUFFERHANDLE ? receivePkt.size : blocks[handle].size;
 }
 
-void
+bool
 Enc28J60Network::sendPacket(memhandle handle)
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
@@ -432,7 +432,7 @@ Enc28J60Network::sendPacket(memhandle handle)
     #if ACTLOGLEVEL>=LOG_ERR
       LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) ERROR:ENC28j50 Device not found !! Bypass sendPacket function !!"));
     #endif
-    return;
+    return false;
     }
 
   memblock *packet = &blocks[handle];
@@ -465,58 +465,41 @@ Enc28J60Network::sendPacket(memhandle handle)
   writeRegPair(ETXSTL, start);
   // Set the TXND pointer to correspond to the packet size given
   writeRegPair(ETXNDL, end);
-  // send the contents of the transmit buffer onto the network
  
-  unsigned int retry = TX_COLLISION_RETRY_COUNT;
-  unsigned int timeout = 100;
-  do
+  bool success = false;
+  // See Rev. B7 Silicon Errata issues 12 and 13
+  for (uint8_t retry = 0; retry < TX_COLLISION_RETRY_COUNT; retry++)
     {
-    // seydamir added
-    // Reset the transmit logic problem. See Rev. B7 Silicon Errata issues 12 and 13
+    // Reset the transmit logic problem. Errata 12
     writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRST);
     writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRST);
     writeOp(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF | EIR_TXIF);
-    // end
  
+    // send the contents of the transmit buffer onto the network
     writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRTS);
-    // Reset the transmit logic problem. See Rev. B4 Silicon Errata point 12.
-    //if( (readReg(EIR) & EIR_TXERIF) )
-    //  {
-    //    writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRTS);
-    //  }
 
-    timeout = 100;
-    while (((readReg(EIR) & (EIR_TXIF | EIR_TXERIF)) == 0) && (timeout>0))
-      {
-      timeout=timeout-1;
-      delay(10);
-      #if defined(ESP8266)
-         wdt_reset();
-      #endif
-      }
-    if (timeout==0)
-      {
-      /* Transmit hardware probably hung, try again later. */
-      /* Shouldn't happen according to errata 12 and 13. */
-      writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRTS);	
-      #if ACTLOGLEVEL>=LOG_WARN
-        LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) WARNING:Collision"));
-      #endif
-      retry=retry-1;
-      }
-    } while ((timeout == 0) && (retry != 0));
+    uint8_t eir;
+    // wait for transmission to complete or fail
+    while (((eir = readReg(EIR)) & (EIR_TXIF | EIR_TXERIF)) == 0);
+    writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRTS);
+    success = ((eir & EIR_TXERIF) == 0);
+    if (success)
+      break; // usual exit of the for(retry) loop
+
+    // Errata 13 detection
+    uint8_t tsv4 = readByte(end + 4);
+    if (!(tsv4 & 0b00100000)) // is it "late collision" indicated in bit 29 of TSV?
+      break; // other fail, not the Errata 13 situation
+    #if ACTLOGLEVEL>=LOG_ERROR
+      LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) Errata 13 LATE COLLISION !!"));
+    #endif
+    }
 
   //restore data on control-byte position
   if (data)
     writeByte(start, data);
 
-  if (retry == 0)
-    {
-    #if ACTLOGLEVEL>=LOG_ERROR
-      LogObject.uart_send_strln(F("Enc28J60Network::sendPacket(memhandle handle) ERROR:COLLISION !!"));
-    #endif
-    return;
-    }
+  return success;
 }
 
 uint16_t

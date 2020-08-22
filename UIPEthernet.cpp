@@ -413,10 +413,10 @@ bool UIPEthernetClass::network_send()
     }
   return false;
 sendandfree:
-  Enc28J60Network::sendPacket(uip_packet);
+  bool success = Enc28J60Network::sendPacket(uip_packet);
   Enc28J60Network::freeBlock(uip_packet);
   uip_packet = NOBLOCK;
-  return true;
+  return success;
 }
 
 void UIPEthernetClass::netInit(const uint8_t* mac) {
