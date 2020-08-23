@@ -215,6 +215,9 @@ extern uint8_t ENC28J60ControlCS;
 
 #define UIP_RECEIVEBUFFERHANDLE 0xff
 
+#define UIP_SENDBUFFER_PADDING 7
+#define UIP_SENDBUFFER_OFFSET 1
+
 /*
  * Empfangen von ip-header, arp etc...
  * wenn tcp/udp -> tcp/udp-callback -> assign new packet to connection

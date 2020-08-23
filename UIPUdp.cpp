@@ -135,8 +135,8 @@ UIPUDP::beginPacket(IPAddress ip, uint16_t port)
     {
       if (appdata.packet_out == NOBLOCK)
         {
-          appdata.packet_out = Enc28J60Network::allocBlock(UIP_UDP_MAXPACKETSIZE);
-          appdata.out_pos = UIP_UDP_PHYH_LEN;
+          appdata.packet_out = Enc28J60Network::allocBlock(UIP_UDP_MAXPACKETSIZE + UIP_SENDBUFFER_OFFSET + UIP_SENDBUFFER_PADDING);
+          appdata.out_pos = UIP_UDP_PHYH_LEN + UIP_SENDBUFFER_OFFSET;
           if (appdata.packet_out != NOBLOCK)
             return 1;
 #if ACTLOGLEVEL>=LOG_ERR
@@ -185,7 +185,7 @@ UIPUDP::endPacket(void)
   if (_uip_udp_conn && appdata.packet_out != NOBLOCK)
     {
       appdata.send = true;
-      Enc28J60Network::resizeBlock(appdata.packet_out,0,appdata.out_pos);
+      Enc28J60Network::resizeBlock(appdata.packet_out,0,appdata.out_pos + UIP_SENDBUFFER_PADDING);
       uip_udp_periodic_conn(_uip_udp_conn);
       if (uip_len > 0)
         {
@@ -400,8 +400,9 @@ uipudp_appcall(void) {
           LogObject.uart_send_decln(Enc28J60Network::blockSize(data->packet_out));
 #endif
           UIPEthernetClass::uip_packet = data->packet_out;
+          UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
           UIPEthernetClass::uip_hdrlen = UIP_UDP_PHYH_LEN;
-          uip_udp_send(data->out_pos - (UIP_UDP_PHYH_LEN));
+          uip_udp_send(data->out_pos - (UIP_UDP_PHYH_LEN + UIP_SENDBUFFER_OFFSET));
         }
     }
 }
@@ -419,18 +420,18 @@ UIPUDP::_send(uip_udp_userdata_t *data) {
 #if ACTLOGLEVEL>=LOG_DEBUG
       LogObject.uart_send_strln(F("UIPUDP::_send() DEBUG:udp, uip_poll results in ARP-packet"));
 #endif
+      UIPEthernetClass::network_send();
     }
   else
   //arp found ethaddr for ip (otherwise packet is replaced by arp-request)
     {
+      UIPEthernetClass::network_send();
       data->send = false;
       data->packet_out = NOBLOCK;
-      UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
 #if ACTLOGLEVEL>=LOG_DEBUG
       LogObject.uart_send_str(F("UIPUDP::_send() DEBUG:udp, uip_packet to send: "));
       LogObject.uart_send_decln(UIPEthernetClass::uip_packet);
 #endif
     }
-  UIPEthernetClass::network_send();
 }
 #endif
