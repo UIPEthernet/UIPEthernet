@@ -97,6 +97,9 @@ public:
 
   using Print::write;
 
+  IPAddress remoteIP();
+  uint16_t remotePort();
+
 private:
   UIPClient(struct uip_conn *_conn);
   UIPClient(uip_userdata_t* conn_data);
