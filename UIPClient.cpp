@@ -386,6 +386,24 @@ UIPClient::flush()
     }
 }
 
+IPAddress
+UIPClient::remoteIP(void)
+{
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("UIPClient::remoteIP(void) DEBUG_V3:Function started"));
+  #endif
+  return data ? ip_addr_uip(uip_conns[data->conn_index].ripaddr) : IPAddress();
+}
+
+uint16_t
+UIPClient::remotePort(void)
+{
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("UIPClient::remotePort(void) DEBUG_V3:Function started"));
+  #endif
+  return data ? ntohs(uip_conns[data->conn_index].rport) : 0;
+}
+
 void
 uipclient_appcall(void)
 {
