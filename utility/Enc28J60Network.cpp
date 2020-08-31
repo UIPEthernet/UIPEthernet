@@ -1199,5 +1199,3 @@ Enc28J60Network::linkStatus(void)
   #endif
   return (phyRead(PHSTAT2) & 0x0400) > 0;
 }
-
-Enc28J60Network Enc28J60;

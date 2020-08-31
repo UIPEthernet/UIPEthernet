@@ -55,6 +55,7 @@ extern "C" {
 typedef uint8_t uip_socket_ptr;
 
 typedef struct {
+  uint8_t conn_index;
   uint8_t state;
   memhandle packets_in[UIP_SOCKET_NUMPACKETS];
   uint16_t lport;        /**< The local TCP port, in network byte order. */

@@ -282,5 +282,4 @@ public:
   static uint16_t chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t len);
 };
 
-extern Enc28J60Network Enc28J60;
 #endif /* Enc28J60NetworkClass_H_ */
