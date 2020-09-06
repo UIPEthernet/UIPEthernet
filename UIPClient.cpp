@@ -277,6 +277,18 @@ ready:
 }
 
 int
+UIPClient::availableForWrite()
+{
+  const int MAX_AVAILABLE = UIP_SOCKET_DATALEN * UIP_SOCKET_NUMPACKETS;
+  UIPEthernetClass::tick();
+  if (data->packets_out[0] == NOBLOCK)
+    return MAX_AVAILABLE;
+  uint8_t p = _currentBlock(data->packets_out);
+  int used = UIP_SOCKET_DATALEN * p + data->out_pos;
+  return MAX_AVAILABLE - used;
+}
+
+int
 UIPClient::available()
 {
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
