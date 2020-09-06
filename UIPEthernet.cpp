@@ -326,6 +326,8 @@ if (Enc28J60Network::geterevid()==0)
                  continue;
                  }
               }
+           else
+             continue;
         }
 #endif
         // If the above function invocation resulted in data that
