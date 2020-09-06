@@ -204,8 +204,8 @@ UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size)
   #endif
   int remain = size;
   uint16_t written;
-#if UIP_ATTEMPTS_ON_WRITE > 0
-  uint16_t attempts = UIP_ATTEMPTS_ON_WRITE;
+#if UIP_WRITE_TIMEOUT > 0
+  uint32_t timeout_start = millis();
 #endif
   repeat:
   UIPEthernetClass::tick();
@@ -218,13 +218,11 @@ newpacket:
           u->packets_out[p] = Enc28J60Network::allocBlock(UIP_SOCKET_DATALEN);
           if (u->packets_out[p] == NOBLOCK)
             {
-#if UIP_ATTEMPTS_ON_WRITE > 0
-              if ((--attempts)>0)
+#if UIP_WRITE_TIMEOUT > 0
+              if (millis() - timeout_start > UIP_WRITE_TIMEOUT)
+                goto ready;
 #endif
-#if UIP_ATTEMPTS_ON_WRITE != 0
-                goto repeat;
-#endif
-              goto ready;
+              goto repeat;
             }
           u->out_pos = 0;
         }
@@ -252,13 +250,11 @@ newpacket:
         {
           if (p == UIP_SOCKET_NUMPACKETS-1)
             {
-#if UIP_ATTEMPTS_ON_WRITE > 0
-              if ((--attempts)>0)
+#if UIP_WRITE_TIMEOUT > 0
+              if (millis() - timeout_start > UIP_WRITE_TIMEOUT)
+                goto ready;
 #endif
-#if UIP_ATTEMPTS_ON_WRITE != 0
-                goto repeat;
-#endif
-              goto ready;
+              goto repeat;
             }
           p++;
           goto newpacket;
