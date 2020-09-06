@@ -209,7 +209,7 @@ UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size)
 #endif
   repeat:
   UIPEthernetClass::tick();
-  if (u && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+  if (u && u->state && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
     {
       uint8_t p = _currentBlock(&u->packets_out[0]);
       if (u->packets_out[p] == NOBLOCK)
@@ -467,7 +467,7 @@ finish_newdata:
           uip_restart();
         }
       // If the connection has been closed, save received but unread data.
-      if (uip_closed() || uip_timedout())
+      if (uip_closed() || uip_timedout() || uip_aborted())
         {
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
           LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V2:UIPClient uip_closed"));
@@ -496,12 +496,14 @@ finish_newdata:
           LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG:UIPClient uip_acked"));
 #endif
           UIPClient::_eatBlock(&u->packets_out[0]);
+          goto send;
         }
       if (uip_poll() || uip_rexmit())
         {
 #if ACTLOGLEVEL>=LOG_DEBUG_V3
           LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V3:UIPClient uip_poll || uip_rexmit"));
 #endif
+          send:
           if (u->packets_out[0] != NOBLOCK)
             {
               if (u->packets_out[1] == NOBLOCK)
