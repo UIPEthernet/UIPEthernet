@@ -204,12 +204,12 @@ UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size)
   #endif
   int remain = size;
   uint16_t written;
-#if UIP_ATTEMPTS_ON_WRITE > 0
-  uint16_t attempts = UIP_ATTEMPTS_ON_WRITE;
+#if UIP_WRITE_TIMEOUT > 0
+  uint32_t timeout_start = millis();
 #endif
   repeat:
   UIPEthernetClass::tick();
-  if (u && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+  if (u && u->state && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
     {
       uint8_t p = _currentBlock(&u->packets_out[0]);
       if (u->packets_out[p] == NOBLOCK)
@@ -218,13 +218,11 @@ newpacket:
           u->packets_out[p] = Enc28J60Network::allocBlock(UIP_SOCKET_DATALEN);
           if (u->packets_out[p] == NOBLOCK)
             {
-#if UIP_ATTEMPTS_ON_WRITE > 0
-              if ((--attempts)>0)
+#if UIP_WRITE_TIMEOUT > 0
+              if (millis() - timeout_start > UIP_WRITE_TIMEOUT)
+                goto ready;
 #endif
-#if UIP_ATTEMPTS_ON_WRITE != 0
-                goto repeat;
-#endif
-              goto ready;
+              goto repeat;
             }
           u->out_pos = 0;
         }
@@ -252,13 +250,11 @@ newpacket:
         {
           if (p == UIP_SOCKET_NUMPACKETS-1)
             {
-#if UIP_ATTEMPTS_ON_WRITE > 0
-              if ((--attempts)>0)
+#if UIP_WRITE_TIMEOUT > 0
+              if (millis() - timeout_start > UIP_WRITE_TIMEOUT)
+                goto ready;
 #endif
-#if UIP_ATTEMPTS_ON_WRITE != 0
-                goto repeat;
-#endif
-              goto ready;
+              goto repeat;
             }
           p++;
           goto newpacket;
@@ -274,6 +270,18 @@ ready:
     }
   //return -1; -1 is wrong because return type is unsigned
   return 0;
+}
+
+int
+UIPClient::availableForWrite()
+{
+  const int MAX_AVAILABLE = UIP_SOCKET_DATALEN * UIP_SOCKET_NUMPACKETS;
+  UIPEthernetClass::tick();
+  if (data->packets_out[0] == NOBLOCK)
+    return MAX_AVAILABLE;
+  uint8_t p = _currentBlock(data->packets_out);
+  int used = UIP_SOCKET_DATALEN * p + data->out_pos;
+  return MAX_AVAILABLE - used;
 }
 
 int
@@ -467,7 +475,7 @@ finish_newdata:
           uip_restart();
         }
       // If the connection has been closed, save received but unread data.
-      if (uip_closed() || uip_timedout())
+      if (uip_closed() || uip_timedout() || uip_aborted())
         {
 #if ACTLOGLEVEL>=LOG_DEBUG_V2
           LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V2:UIPClient uip_closed"));
@@ -496,12 +504,14 @@ finish_newdata:
           LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG:UIPClient uip_acked"));
 #endif
           UIPClient::_eatBlock(&u->packets_out[0]);
+          goto send;
         }
       if (uip_poll() || uip_rexmit())
         {
 #if ACTLOGLEVEL>=LOG_DEBUG_V3
           LogObject.uart_send_strln(F("uipclient_appcall(void) DEBUG_V3:UIPClient uip_poll || uip_rexmit"));
 #endif
+          send:
           if (u->packets_out[0] != NOBLOCK)
             {
               if (u->packets_out[1] == NOBLOCK)
