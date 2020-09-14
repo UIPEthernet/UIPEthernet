@@ -67,3 +67,22 @@ https://github.com/UIPEthernet/UIPEthernet/blob/master/hardware/NodeMCU_enc28j60
 - compilation with logging enabled fixes for megaavr core (jandrassy)
 - stm32 blue pill wiring picture corrected (jandrassy)
 - New release:2.0.8
+
+- major bug fix - wrong calculation of packet position wrapped on RXSTOP
+- Enc28J60Network: reserve space for TSV. coded by N.Truchsess in ntruchsess/arduino_uip#103
+- solved problem with STM32F3 define in ARDUINO_ARCH_STM32
+- sendPacket: fixed Errata 13 workaround and send result returned
+- UIPClient - fix of the 'overlay' struct uip_userdata_closed_t
+- Enc28J60 object removed. all functions in Enc28J60Network were static
+- uip_timer, uip_clock, clock-arch and uip_debug were not used. removed
+- Ethernet.tick() - polling for active connection was too frequent. in UIP_CLIENT_TIMER mode (it is default) an active connection was polled every tick()
+- UIPClient - added getters remoteIP() and remotePort()
+- UIPClient - implementation of availableForWrite()
+- UIPClient - sending next packet right after ACK boost the performance
+- UIPClient - aborted was not handled
+- UIPClient - _write() looped forever if connection timed out
+- UIPClient - UIP_WRITE_TIMEOUT instead of UIP_ATTEMPTS_ON_WRITE
+- UIPServer - added operator bool() and function end()
+- UIPEthernet - added hardwareStatus() (Ethernet 2.00 compatibility)
+- Ethernet.h file for super libraries including Ethernet.h
+- New release:2.0.9
