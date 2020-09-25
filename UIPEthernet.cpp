@@ -35,7 +35,6 @@ extern "C"
 #include "utility/uipopt.h"
 #include "utility/uip.h"
 #include "utility/uip_arp.h"
-#include "utility/uip_timer.h"
 }
 
 #define ETH_HDR ((struct uip_eth_hdr *)&uip_buf[0])
@@ -175,9 +174,15 @@ int UIPEthernetClass::maintain(){
 
 EthernetLinkStatus UIPEthernetClass::linkStatus()
 {
-  if (!Enc28J60.geterevid())
+  if (!Enc28J60Network::geterevid())
     return Unknown;
-  return Enc28J60.linkStatus() ? LinkON : LinkOFF;
+  return Enc28J60Network::linkStatus() ? LinkON : LinkOFF;
+}
+
+EthernetHardwareStatus UIPEthernetClass::hardwareStatus() {
+  if (!Enc28J60Network::geterevid())
+    return EthernetNoHardware;
+  return EthernetENC28J60;
 }
 
 IPAddress UIPEthernetClass::localIP()
@@ -331,13 +336,12 @@ if (Enc28J60Network::geterevid()==0)
         }
       else
         {
-        if (uip_conn!=NULL)
-           {
            if (((uip_userdata_t*)uip_conn->appstate)!=NULL)
               {
               if ((long)( now - ((uip_userdata_t*)uip_conn->appstate)->timer) >= 0)
                  {
                  uip_process(UIP_POLL_REQUEST);
+                 ((uip_userdata_t*)uip_conn->appstate)->timer = millis() + UIP_CLIENT_TIMER;
                  }
               else
                  {
@@ -345,27 +349,7 @@ if (Enc28J60Network::geterevid()==0)
                  }
               }
            else
-              {
-              #if ACTLOGLEVEL>=LOG_DEBUG_V3
-                 LogObject.uart_send_strln(F("UIPEthernetClass::tick() DEBUG_V3:((uip_userdata_t*)uip_conn->appstate) is NULL"));
-              #endif
-              if ((long)( now - ((uip_userdata_t*)uip_conn)->timer) >= 0)
-                 {
-                 uip_process(UIP_POLL_REQUEST);
-                 }
-              else
-                 {
-                 continue;
-                 }
-              }
-           }
-        else
-           {
-           #if ACTLOGLEVEL>=LOG_ERR
-             LogObject.uart_send_strln(F("UIPEthernetClass::tick() ERROR:uip_conn is NULL"));
-           #endif
-           continue;
-           }
+             continue;
         }
 #endif
         // If the above function invocation resulted in data that
@@ -411,11 +395,11 @@ bool UIPEthernetClass::network_send()
       LogObject.uart_send_str(F(", hdrlen: "));
       LogObject.uart_send_decln(uip_hdrlen);
 #endif
-      Enc28J60Network::writePacket(uip_packet,0,uip_buf,uip_hdrlen);
+      Enc28J60Network::writePacket(uip_packet, UIP_SENDBUFFER_OFFSET,uip_buf,uip_hdrlen);
       packetstate &= ~ UIPETHERNET_SENDPACKET;
       goto sendandfree;
     }
-  uip_packet = Enc28J60Network::allocBlock(uip_len);
+  uip_packet = Enc28J60Network::allocBlock(uip_len + UIP_SENDBUFFER_OFFSET + UIP_SENDBUFFER_PADDING);
   if (uip_packet != NOBLOCK)
     {
 #if ACTLOGLEVEL>=LOG_DEBUG
@@ -424,15 +408,15 @@ bool UIPEthernetClass::network_send()
       LogObject.uart_send_str(F(", packet: "));
       LogObject.uart_send_decln(uip_packet);
 #endif
-      Enc28J60Network::writePacket(uip_packet,0,uip_buf,uip_len);
+      Enc28J60Network::writePacket(uip_packet, UIP_SENDBUFFER_OFFSET,uip_buf,uip_len);
       goto sendandfree;
     }
   return false;
 sendandfree:
-  Enc28J60Network::sendPacket(uip_packet);
+  bool success = Enc28J60Network::sendPacket(uip_packet);
   Enc28J60Network::freeBlock(uip_packet);
   uip_packet = NOBLOCK;
-  return true;
+  return success;
 }
 
 void UIPEthernetClass::netInit(const uint8_t* mac) {
@@ -590,7 +574,7 @@ uip_tcpchksum(void)
       sum = Enc28J60Network::chksum(
           sum,
           UIPEthernetClass::uip_packet,
-          UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen,
+          (UIPEthernetClass::packetstate & UIPETHERNET_SENDPACKET ? UIP_IPH_LEN + UIP_LLH_LEN + UIP_SENDBUFFER_OFFSET : UIP_IPH_LEN + UIP_LLH_LEN) + upper_layer_memlen,
           upper_layer_len - upper_layer_memlen
       );
 #if ACTLOGLEVEL>=LOG_DEBUG

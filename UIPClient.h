@@ -23,7 +23,7 @@
 #include "ethernet_comp.h"
 #if defined(ARDUINO)
   #include "Print.h"
-  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+  #if defined(__STM32F3__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__RFduino__)
     #include "mbed/Client.h"
   #else
     #include "Client.h"
@@ -46,22 +46,23 @@ extern "C" {
 #define UIP_SOCKET_NUMPACKETS 5
 #endif
 
-#define UIP_CLIENT_CONNECTED 0x10
-#define UIP_CLIENT_CLOSE 0x20
-#define UIP_CLIENT_REMOTECLOSED 0x40
-#define UIP_CLIENT_RESTART 0x80
-#define UIP_CLIENT_STATEFLAGS (UIP_CLIENT_CONNECTED | UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED | UIP_CLIENT_RESTART)
-#define UIP_CLIENT_SOCKETS ~UIP_CLIENT_STATEFLAGS
+#define UIP_CLIENT_CONNECTED 0x01
+#define UIP_CLIENT_CLOSE 0x02
+#define UIP_CLIENT_REMOTECLOSED 0x04
+#define UIP_CLIENT_RESTART 0x08
+#define UIP_CLIENT_ACCEPTED 0x10
 
 typedef uint8_t uip_socket_ptr;
 
 typedef struct {
+  uint8_t conn_index;
   uint8_t state;
   memhandle packets_in[UIP_SOCKET_NUMPACKETS];
   uint16_t lport;        /**< The local TCP port, in network byte order. */
 } uip_userdata_closed_t;
 
 typedef struct {
+  uint8_t conn_index;
   uint8_t state;
   memhandle packets_in[UIP_SOCKET_NUMPACKETS];
   memhandle packets_out[UIP_SOCKET_NUMPACKETS];
@@ -71,10 +72,10 @@ typedef struct {
 #endif
 } uip_userdata_t;
 
-#if defined(ARDUINO) && !defined(STM32F3) && !defined(__RFduino__)
+#if defined(ARDUINO) && (defined(ARDUINO_ARCH_STM32) || !defined(STM32F3)) && !defined(__RFduino__)
   class UIPClient : public Client {
 #endif
-#if defined(__MBED__) || defined(STM32F3) || defined(__RFduino__)
+#if defined(__MBED__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__RFduino__)
   class UIPClient : public Print, public Client {
 #endif
 public:
@@ -90,12 +91,17 @@ public:
 
   virtual size_t write(uint8_t);
   virtual size_t write(const uint8_t *buf, size_t size);
+  virtual int availableForWrite();
+
   virtual int available();
   virtual int read();
   virtual int peek();
   virtual void flush();
 
   using Print::write;
+
+  IPAddress remoteIP();
+  uint16_t remotePort();
 
 private:
   UIPClient(struct uip_conn *_conn);

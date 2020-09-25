@@ -26,7 +26,7 @@
 #endif
 #if defined(ARDUINO)
   #include <Arduino.h>
-  #if defined(__STM32F3__) || defined(STM32F3) || defined(__RFduino__)
+  #if defined(__STM32F3__) || (!defined(ARDUINO_ARCH_STM32) && defined(STM32F3)) || defined(__RFduino__)
     #include "mbed/IPAddress.h"
   #else
     #include "IPAddress.h"
@@ -43,7 +43,6 @@
 
 extern "C"
 {
-#include "utility/uip_timer.h"
 #include "utility/uip.h"
 }
 
@@ -73,6 +72,14 @@ enum EthernetLinkStatus {
   LinkOFF
 };
 
+enum EthernetHardwareStatus {
+  EthernetNoHardware,
+  EthernetW5100,
+  EthernetW5200,
+  EthernetW5500,
+  EthernetENC28J60 = 10
+};
+
 class UIPEthernetClass
 {
 public:
@@ -93,6 +100,7 @@ public:
   int maintain();
 
   EthernetLinkStatus linkStatus();
+  EthernetHardwareStatus hardwareStatus();
 
   IPAddress localIP();
   IPAddress subnetMask();
