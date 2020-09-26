@@ -93,23 +93,14 @@ extern "C" {
 uint16_t Enc28J60Network::nextPacketPtr;
 uint8_t Enc28J60Network::bank=0xff;
 uint8_t Enc28J60Network::erevid=0;
+uint8_t Enc28J60Network::SPIinit=0;
 
 struct memblock Enc28J60Network::receivePkt;
 
 bool Enc28J60Network::broadcast_enabled = false;
 
-
-void Enc28J60Network::init(uint8_t* macaddr)
+void Enc28J60Network::initSPI()
 {
-  #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.uart_send_strln(F("Enc28J60Network::init(uint8_t* macaddr) DEBUG_V3:Function started"));
-  #endif
-  receivePkt.begin = 0;
-  receivePkt.size = 0;
-
-  unsigned int timeout = 15;
-  MemoryPool::init(); // 1 byte in between RX_STOP_INIT and pool to allow prepending of controlbyte
-  // initialize I/O
   // ss as output:
   #if defined(ARDUINO)
   	  pinMode(ENC28J60ControlCS, OUTPUT);
@@ -190,7 +181,27 @@ void Enc28J60Network::init(uint8_t* macaddr)
   // master mode and Fosc/2 clock:
   SPCR = (1<<SPE)|(1<<MSTR);
   SPSR |= (1<<SPI2X);
-#endif
+#endif	
+}
+
+void Enc28J60Network::geterevidSPI()
+{
+  erevid=readReg(EREVID);	
+}
+
+void Enc28J60Network::init(uint8_t* macaddr)
+{
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("Enc28J60Network::init(uint8_t* macaddr) DEBUG_V3:Function started"));
+  #endif
+  receivePkt.begin = 0;
+  receivePkt.size = 0;
+
+  unsigned int timeout = 15;
+  MemoryPool::init(); // 1 byte in between RX_STOP_INIT and pool to allow prepending of controlbyte
+  
+  // initialize I/O
+  if (SPIinit == 0) { initSPI(); geterevidSPI(); SPIinit = 1;} 
 
   // perform system reset
   writeOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
@@ -305,7 +316,6 @@ void Enc28J60Network::init(uint8_t* macaddr)
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("ENC28J60::init DEBUG_V3:Before readReg(EREVID);"));
   #endif
-  erevid=readReg(EREVID);
   if (erevid==0xFF) {erevid=0;}
   // microchip forgot to step the number on the silcon when they
   // released the revision B7. 6 is now rev B7. We still have
@@ -1172,6 +1182,7 @@ Enc28J60Network::geterevid(void)
     LogObject.uart_send_str(F("Enc28J60Network::geterevid(void) DEBUG_V3:Function started and return:"));
     LogObject.uart_send_decln(erevid);
   #endif
+  if (SPIinit == 0) { initSPI(); geterevidSPI(); SPIinit = 1; }
   return(erevid);
 }
 
