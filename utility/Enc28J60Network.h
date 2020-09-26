@@ -265,7 +265,6 @@ private:
   friend void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
 
   static void initSPI(void);
-  static void geterevidSPI(void);
   
 public:
 
