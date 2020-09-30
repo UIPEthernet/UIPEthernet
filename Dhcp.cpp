@@ -276,14 +276,15 @@ void DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed)
     }
     
     buffer[0] = dhcpParamRequest;
-    buffer[1] = 0x06;
+    buffer[1] = 0x07;
     buffer[2] = subnetMask;
     buffer[3] = routersOnSubnet;
     buffer[4] = dns;
     buffer[5] = domainName;
     buffer[6] = dhcpT1value;
     buffer[7] = dhcpT2value;
-    buffer[8] = endOption;
+	buffer[8] = ntpServers;
+    buffer[9] = endOption;
     
     //put data in W5100 transmit buffer
     _dhcpUdpSocket.write(buffer, 9);
@@ -405,6 +406,15 @@ uint8_t DhcpClass::parseDHCPResponse(uint32_t& transactionId)
                     _dhcpUdpSocket.read((char*)&_dhcpLeaseTime, sizeof(_dhcpLeaseTime));
                     _dhcpLeaseTime = ntohl(_dhcpLeaseTime);
                     _renewInSec = _dhcpLeaseTime;
+                    break;
+
+                case ntpServers :
+                    opt_len = _dhcpUdpSocket.read();
+                    _dhcpUdpSocket.read((char*)_dhcpipv4struct.NTPServerIp, 4);
+                    for (int i = 0; i < opt_len-4; i++)
+                    {
+                        _dhcpUdpSocket.read();
+                    }
                     break;
 
                 default :
@@ -529,6 +539,14 @@ IPAddress DhcpClass::getDnsServerIp(void)
       LogObject.uart_send_strln(F("DhcpClass::getDnsServerIp(void) DEBUG_V1:Function started"));
     #endif
     return IPAddress(_dhcpipv4struct.DnsServerIp);
+}
+
+IPAddress DhcpClass::getNTPServerIp(void)
+{
+    #if ACTLOGLEVEL>=LOG_DEBUG_V1
+      LogObject.uart_send_strln(F("DhcpClass::getDnsServerIp(void) DEBUG_V1:Function started"));
+    #endif
+    return IPAddress(_dhcpipv4struct.NTPServerIp);
 }
 
 void DhcpClass::printByte(char * buf, uint8_t n ) {

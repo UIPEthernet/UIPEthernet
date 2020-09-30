@@ -232,6 +232,7 @@ private:
   static uint16_t nextPacketPtr;
   static uint8_t bank;
   static uint8_t erevid;
+  static uint8_t SPIinit;
 
   static struct memblock receivePkt;
 
@@ -263,6 +264,8 @@ private:
 
   friend void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
 
+  static void initSPI(void);
+  
 public:
 
   void powerOn(void);

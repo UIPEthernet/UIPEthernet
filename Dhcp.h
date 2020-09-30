@@ -101,9 +101,9 @@ enum
 	tcpKeepaliveInterval	=	38,
 	tcpKeepaliveGarbage	=	39,
 	nisDomainName		=	40,
-	nisServers		=	41,
+	nisServers		=	41,*/
 	ntpServers		=	42,
-	vendorSpecificInfo	=	43,
+	/*vendorSpecificInfo	=	43,
 	netBIOSnameServer	=	44,
 	netBIOSdgramDistServer	=	45,
 	netBIOSnodeType		=	46,
@@ -148,6 +148,7 @@ typedef struct
   uint8_t  GatewayIp[4];
   uint8_t  DhcpServerIp[4];
   uint8_t  DnsServerIp[4];
+  uint8_t  NTPServerIp[4];
 } TIPV4Struct;
 
 class DhcpClass {
@@ -178,6 +179,7 @@ public:
   IPAddress getGatewayIp(void);
   IPAddress getDhcpServerIp(void);
   IPAddress getDnsServerIp(void);
+  IPAddress getNTPServerIp(void);  
   
   int beginWithDHCP(uint8_t *);
   int checkLease(void);

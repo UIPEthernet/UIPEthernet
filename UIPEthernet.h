@@ -92,6 +92,7 @@ public:
   void begin(const uint8_t* mac, IPAddress ip, IPAddress dns);
   void begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddress gateway);
   void begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet);
+  void begin(const uint8_t* mac, IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet, IPAddress ntp);
 
   // maintain() must be called at regular intervals to process the incoming serial
   // data and issue IP events to the sketch.  It does not return until all IP
@@ -105,6 +106,7 @@ public:
   IPAddress subnetMask();
   IPAddress gatewayIP();
   IPAddress dnsServerIP();
+  IPAddress ntpServerIP();
 
 private:
   static memhandle in_packet;
@@ -113,13 +115,14 @@ private:
   static uint8_t packetstate;
   
   static IPAddress _dnsServerAddress;
+  static IPAddress _ntpServerAddress;
   #if UIP_UDP
     static DhcpClass* _dhcp;
   #endif
   static unsigned long periodic_timer;
 
   static void netInit(const uint8_t* mac);
-  static void configure(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet);
+  static void configure(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet, IPAddress ntp);
 
   static void tick();
 
