@@ -271,6 +271,7 @@ public:
   uint16_t PhyStatus(void);
   static bool linkStatus(void);
 
+  static void initSPI();
   static void init(uint8_t* macaddr);
   static memhandle receivePacket(void);
   static void freePacket(void);

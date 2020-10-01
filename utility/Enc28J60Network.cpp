@@ -98,24 +98,22 @@ struct memblock Enc28J60Network::receivePkt;
 
 bool Enc28J60Network::broadcast_enabled = false;
 
+void Enc28J60Network::initSPI() {
 
-void Enc28J60Network::init(uint8_t* macaddr)
-{
+  if (erevid != 0)
+    return;
+
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.uart_send_strln(F("Enc28J60Network::init(uint8_t* macaddr) DEBUG_V3:Function started"));
+    LogObject.uart_send_strln(F("Enc28J60Network::initSPI() DEBUG_V3:Function started"));
   #endif
-  receivePkt.begin = 0;
-  receivePkt.size = 0;
 
-  unsigned int timeout = 15;
-  MemoryPool::init(); // 1 byte in between RX_STOP_INIT and pool to allow prepending of controlbyte
   // initialize I/O
   // ss as output:
   #if defined(ARDUINO)
   	  pinMode(ENC28J60ControlCS, OUTPUT);
   #endif
   #if defined(__MBED__)
-  	 millis_start(); 
+  	 millis_start();
   #endif
   CSPASSIVE; // ss=0
   //
@@ -191,6 +189,35 @@ void Enc28J60Network::init(uint8_t* macaddr)
   SPCR = (1<<SPE)|(1<<MSTR);
   SPSR |= (1<<SPI2X);
 #endif
+
+
+#if ACTLOGLEVEL>=LOG_DEBUG_V3
+  LogObject.uart_send_strln(F("ENC28J60::init DEBUG_V3:Before readReg(EREVID);"));
+#endif
+  erevid=readReg(EREVID);
+  if (erevid==0xFF) {erevid=0;}
+  // microchip forgot to step the number on the silcon when they
+  // released the revision B7. 6 is now rev B7. We still have
+  // to see what they do when they release B8. At the moment
+  // there is no B8 out yet
+  //if (erevid > 5) ++erevid;
+#if ACTLOGLEVEL>=LOG_INFO
+  LogObject.uart_send_str(F("ENC28J60::init INFO: Chip erevid="));
+  LogObject.uart_send_dec(erevid);
+  LogObject.uart_send_strln(F(" initialization completed."));
+#endif
+}
+
+void Enc28J60Network::init(uint8_t* macaddr)
+{
+  #if ACTLOGLEVEL>=LOG_DEBUG_V3
+    LogObject.uart_send_strln(F("Enc28J60Network::init(uint8_t* macaddr) DEBUG_V3:Function started"));
+  #endif
+  receivePkt.begin = 0;
+  receivePkt.size = 0;
+
+  unsigned int timeout = 15;
+  MemoryPool::init(); // 1 byte in between RX_STOP_INIT and pool to allow prepending of controlbyte
 
   // perform system reset
   writeOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
@@ -301,22 +328,6 @@ void Enc28J60Network::init(uint8_t* macaddr)
   writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);
   //Configure leds
   phyWrite(PHLCON,0x476);
-
-  #if ACTLOGLEVEL>=LOG_DEBUG_V3
-    LogObject.uart_send_strln(F("ENC28J60::init DEBUG_V3:Before readReg(EREVID);"));
-  #endif
-  erevid=readReg(EREVID);
-  if (erevid==0xFF) {erevid=0;}
-  // microchip forgot to step the number on the silcon when they
-  // released the revision B7. 6 is now rev B7. We still have
-  // to see what they do when they release B8. At the moment
-  // there is no B8 out yet
-  //if (erevid > 5) ++erevid;
-  #if ACTLOGLEVEL>=LOG_INFO
-    LogObject.uart_send_str(F("ENC28J60::init INFO: Chip erevid="));
-    LogObject.uart_send_dec(erevid);
-    LogObject.uart_send_strln(F(" initialization completed."));
-  #endif
 
 //  return Enc28J60Network::erevid;
 }
@@ -462,7 +473,7 @@ Enc28J60Network::sendPacket(memhandle handle)
   writeRegPair(ETXSTL, start);
   // Set the TXND pointer to correspond to the packet size given
   writeRegPair(ETXNDL, end);
- 
+
   bool success = false;
   // See Rev. B7 Silicon Errata issues 12 and 13
   for (uint8_t retry = 0; retry < TX_COLLISION_RETRY_COUNT; retry++)
@@ -471,7 +482,7 @@ Enc28J60Network::sendPacket(memhandle handle)
     writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRST);
     writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRST);
     writeOp(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF | EIR_TXIF);
- 
+
     // send the contents of the transmit buffer onto the network
     writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRTS);
 
@@ -505,7 +516,7 @@ Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len)
   memaddress start = handle == UIP_RECEIVEBUFFERHANDLE && packet->begin + position > RXSTOP_INIT ? packet->begin + position-((RXSTOP_INIT + 1)-RXSTART_INIT) : packet->begin + position;
 
   writeRegPair(ERDPTL, start);
-  
+
   if (len > packet->size - position)
     len = packet->size - position;
   return len;
@@ -661,7 +672,7 @@ uint8_t Enc28J60Network::readByte(uint16_t addr)
     waitspi();
     CSPASSIVE;
     return (SPDR);
-  #endif  
+  #endif
 }
 
 void Enc28J60Network::writeByte(uint16_t addr, uint8_t data)
@@ -873,7 +884,7 @@ Enc28J60Network::readBuffer(uint16_t len, uint8_t* data)
   #endif
   CSACTIVE;
   // issue read command
-  #if ENC28J60_USE_SPILIB  
+  #if ENC28J60_USE_SPILIB
     #if defined(ARDUINO)
       SPI.transfer(ENC28J60_READ_BUF_MEM);
     #endif
@@ -888,7 +899,7 @@ Enc28J60Network::readBuffer(uint16_t len, uint8_t* data)
     {
     len--;
     // read data
-    #if ENC28J60_USE_SPILIB    
+    #if ENC28J60_USE_SPILIB
       #if defined(ARDUINO)
         *data = SPI.transfer(0x00);
       #endif
@@ -899,7 +910,7 @@ Enc28J60Network::readBuffer(uint16_t len, uint8_t* data)
       SPDR = 0x00;
       waitspi();
       *data = SPDR;
-    #endif    
+    #endif
     data++;
     }
   //*data='\0';
@@ -914,7 +925,7 @@ Enc28J60Network::writeBuffer(uint16_t len, uint8_t* data)
   #endif
   CSACTIVE;
   // issue write command
-  #if ENC28J60_USE_SPILIB  
+  #if ENC28J60_USE_SPILIB
     #if defined(ARDUINO)
       SPI.transfer(ENC28J60_WRITE_BUF_MEM);
     #endif
@@ -929,7 +940,7 @@ Enc28J60Network::writeBuffer(uint16_t len, uint8_t* data)
     {
     len--;
     // write data
-    #if ENC28J60_USE_SPILIB  
+    #if ENC28J60_USE_SPILIB
       #if defined(ARDUINO)
         SPI.transfer(*data);
       #endif
@@ -1115,7 +1126,7 @@ Enc28J60Network::chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t
     }
   if(i == len)
     {
-    #if ENC28J60_USE_SPILIB  
+    #if ENC28J60_USE_SPILIB
       #if defined(ARDUINO)
         t = (SPI.transfer(0x00) << 8) + 0;
       #endif
@@ -1126,7 +1137,7 @@ Enc28J60Network::chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t
       SPDR = 0x00;
       waitspi();
       t = (SPDR << 8) + 0;
-    #endif    
+    #endif
     sum += t;
     if(sum < t)
       {
