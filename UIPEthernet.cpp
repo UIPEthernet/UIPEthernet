@@ -161,12 +161,14 @@ int UIPEthernetClass::maintain(){
 
 EthernetLinkStatus UIPEthernetClass::linkStatus()
 {
+  Enc28J60Network::initSPI();
   if (!Enc28J60Network::geterevid())
     return Unknown;
   return Enc28J60Network::linkStatus() ? LinkON : LinkOFF;
 }
 
 EthernetHardwareStatus UIPEthernetClass::hardwareStatus() {
+  Enc28J60Network::initSPI();
   if (!Enc28J60Network::geterevid())
     return EthernetNoHardware;
   return EthernetENC28J60;
@@ -403,6 +405,7 @@ void UIPEthernetClass::netInit(const uint8_t* mac) {
   #endif
   periodic_timer = millis() + UIP_PERIODIC_TIMER;
 
+  Enc28J60Network::initSPI();
   Enc28J60Network::init((uint8_t*)mac);
   uip_seteth_addr(mac);
 
