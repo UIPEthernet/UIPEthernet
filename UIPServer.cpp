@@ -70,6 +70,14 @@ void UIPServer::begin(uint16_t port) {
 void UIPServer::end() {
   uip_unlisten(_port);
   listening = false;
+  for ( uip_userdata_t* data = &UIPClient::all_data[0]; data < &UIPClient::all_data[UIP_CONNS]; data++ )
+    {
+      if ((data->state & UIP_CLIENT_CONNECTED) && uip_conns[data->conn_index].lport ==_port)
+        {
+          UIPClient client(data);
+          client.stop();
+        }
+    }
 }
 
 UIPServer::operator bool() {
