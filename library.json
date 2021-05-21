@@ -14,13 +14,13 @@
       "email": "cnorbert.truchsess@t-online.de",
       "url": "https://github.com/ntruchsess",
       "maintainer": false
-    }
+    },
     {
       "name": "CassyArduino",
       "email": "cassy@zalaszam.hu",
       "url": "http://www.zalaszam.hu/~cassy",
       "maintainer": false
-    }
+    },
     {
       "name": "Juraj Andrassy",
       "email": "juraj.andrassy@gmail.com",
@@ -28,7 +28,7 @@
       "maintainer": true
     }
   ],
-  "version": "2.0.9",
+  "version": "2.0.10",
   "frameworks": "arduino, mbed",
   "platforms": "atmelavr, atmelmegaavr, atmelsam, espressif8266, intel_arc32, nordicnrf51, nxplpc, ststm32, teensy",
   "export":
