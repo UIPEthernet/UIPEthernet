@@ -89,7 +89,7 @@ UIPUDP::beginPacket(IPAddress ip, uint16_t port)
     LogObject.uart_send_strln(F("UIPUDP::beginPacket(IPAddress ip, uint16_t port) DEBUG_V3:Function started"));
   #endif
   UIPEthernetClass::tick();
-  if (ip && port)
+  if ((ip[0] || ip[1] || ip[2] || ip[3]) && port)
     {
       uip_ipaddr_t ripaddr;
       uip_ip_addr(&ripaddr, ip);
