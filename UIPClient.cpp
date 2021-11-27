@@ -290,7 +290,7 @@ UIPClient::available()
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("UIPClient::available() DEBUG_V3:Function started"));
   #endif
-  if (*this)
+  if (data)
     return _available(data);
   return 0;
 }
@@ -315,7 +315,7 @@ UIPClient::read(uint8_t *buf, size_t size)
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("UIPClient::read(uint8_t *buf, size_t size) DEBUG_V3:Function started"));
   #endif
-  if (*this)
+  if (data)
     {
       uint16_t remain = size;
       if (data->packets_in[0] == NOBLOCK)
@@ -370,7 +370,7 @@ UIPClient::peek()
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("UIPClient::peek() DEBUG_V3:Function started"));
   #endif
-  if (*this)
+  if (data)
     {
       if (data->packets_in[0] != NOBLOCK)
         {
@@ -388,7 +388,7 @@ UIPClient::flush()
   #if ACTLOGLEVEL>=LOG_DEBUG_V3
     LogObject.uart_send_strln(F("UIPClient::flush() DEBUG_V3:Function started"));
   #endif
-  if (*this)
+  if (data)
     {
       _flushBlocks(&data->packets_in[0]);
     }
