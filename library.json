@@ -1,6 +1,6 @@
 {
   "name": "UIPEthernet",
-  "keywords": "ENC28j60, Ethernet, UIP, TCP/IP, Network",
+  "keywords": "ENC28j60, Ethernet, UIP, TCP, IP, Network",
   "description": "Ethernet library for ENC28J60 (Compatible with Wiznet W5100 Ethernet library API.)",
   "repository":
   {
