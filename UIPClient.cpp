@@ -448,7 +448,7 @@ uipclient_appcall(void)
           LogObject.uart_send_str(F("uipclient_appcall(void) DEBUG:UIPClient uip_newdata, uip_len:"));
           LogObject.uart_send_decln(uip_len);
 #endif
-          if (uip_len && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+          if (uip_len && u->state && !(u->state & UIP_CLIENT_CLOSE))
             {
               for (uint8_t i=0; i < UIP_SOCKET_NUMPACKETS; i++)
                 {
