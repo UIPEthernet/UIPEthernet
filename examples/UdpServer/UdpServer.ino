@@ -125,9 +125,10 @@ while(true) {
 
     udp.stop();
     //restart with new connection to receive packets from other clients
+    success = udp.begin(5000);
     #if ACTLOGLEVEL>=LOG_INFO
       LogObject.uart_send_str(F("restart connection: "));
-      LogObject.uart_send_strln(udp.begin(5000) ? "success" : "failed");
+      LogObject.uart_send_strln(success ? "success" : "failed");
     #endif
   }
 }
